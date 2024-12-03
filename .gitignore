@@ -9,6 +9,9 @@
 # Ignore Google Cloud ignore files
 .gcloudignore
 
+# Ignore Docker ignore files
+.dockerignore
+
 # Ignore dependency directories
 **/node_modules/
 **/vendor/
