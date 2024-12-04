@@ -207,3 +207,59 @@ resource "aws_route53_record" "app" {
     evaluate_target_health = true
   }
 }
+
+resource "aws_acm_certificate" "main" {
+  domain_name       = var.aws_route53_domain
+  validation_method = "DNS"
+}
+
+resource "aws_acm_certificate_validation" "main" {
+  certificate_arn         = aws_acm_certificate.main.arn
+  validation_record_fqdns = [for record in aws_route53_record.validation : record.fqdn]
+}
+
+resource "aws_route53_record" "validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.main.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  zone_id = aws_route53_zone.main.id
+  name    = each.value.name
+  type    = each.value.type
+  records = [each.value.record]
+  ttl     = 60
+}
+
+# Update listener to HTTPS
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_acm_certificate.main.arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app.arn
+  }
+}
+
+# outputs
+output "app_url" {
+  value = "http://${aws_lb.main.dns_name}"
+  description = "Application URL using ALB DNS name"
+}
+
+output "custom_domain" {
+  value = aws_route53_record.app.name
+  description = "Custom domain name"
+}
+
+output "load_balancer_dns" {
+  value = aws_lb.main.dns_name
+  description = "Load balancer DNS name"
+}
