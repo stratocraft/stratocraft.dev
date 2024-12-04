@@ -7,6 +7,7 @@ terraform {
   }
 }
 
+# Provider configuration
 provider "aws" {
   region = var.aws_region
 }
@@ -22,22 +23,26 @@ resource "aws_vpc" "main" {
   }
 }
 
+# Primary Subnet
 resource "aws_subnet" "primary" {
   vpc_id = aws_vpc.main.id
   cidr_block = var.aws_primary_subnet_cidr_block
   availability_zone = var.aws_primary_availability_zone
 }
 
+# Secondary Subnet
 resource "aws_subnet" "secondary" {
   vpc_id = aws_vpc.main.id
   cidr_block = var.aws_secondary_subnet_cidr_block
   availability_zone = var.aws_secondary_availability_zone
 }
 
+# Internet Gateway
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 }
 
+# Route Tables
 resource "aws_route_table" "main" {
   vpc_id = aws_vpc.main.id
   route {
@@ -46,7 +51,8 @@ resource "aws_route_table" "main" {
   }
 }
 
-resource "aws_route_table_association" "main" {
+# Route Table Association
+resource "aws_route_table_association" "primary" {
   subnet_id = aws_subnet.primary.id
   route_table_id = aws_route_table.main.id
 }
@@ -65,6 +71,7 @@ resource "aws_lb" "main" {
   subnets            = [aws_subnet.primary.id, aws_subnet.secondary.id]
 }
 
+# Load Balancer HTTP Listener
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.main.arn
   port              = "80"
@@ -76,6 +83,7 @@ resource "aws_lb_listener" "http" {
   }
 }
 
+# Load Balancer Target Group
 resource "aws_lb_target_group" "app" {
   name        = "${var.project_name}-tg"
   port        = 8080
@@ -123,15 +131,17 @@ resource "aws_security_group" "ecs" {
   }
 }
 
-# ECR and ECS
+# ECR Repository
 resource "aws_ecr_repository" "app" {
   name = var.ecr_repo_name
 }
 
+# ECS Cluster
 resource "aws_ecs_cluster" "main" {
   name = var.ecs_cluster_name
 }
 
+# ECS Task Definition
 resource "aws_ecs_task_definition" "app" {
   family                   = var.ecs_task_definition_family
   network_mode            = "awsvpc"
@@ -150,6 +160,7 @@ resource "aws_ecs_task_definition" "app" {
   }])
 }
 
+# ECS Service
 resource "aws_ecs_service" "app" {
   name            = var.ecs_service_name
   cluster         = aws_ecs_cluster.main.id
@@ -191,7 +202,7 @@ resource "aws_iam_role_policy_attachment" "ecs_execution" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
-# DNS
+# DNS (Route 53)
 resource "aws_route53_zone" "main" {
   name = var.aws_route53_zone
 }
@@ -208,9 +219,16 @@ resource "aws_route53_record" "app" {
   }
 }
 
+# ACM Certificate
 resource "aws_acm_certificate" "main" {
   domain_name       = var.aws_route53_domain
   validation_method = "DNS"
+
+  subject_alternative_names = ["www.${var.aws_route53_domain}"]
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_acm_certificate_validation" "main" {
@@ -234,7 +252,7 @@ resource "aws_route53_record" "validation" {
   ttl     = 60
 }
 
-# Update listener to HTTPS
+# Update Load Balancer listener to HTTPS
 resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.main.arn
   port              = "443"
@@ -249,6 +267,11 @@ resource "aws_lb_listener" "https" {
 }
 
 # outputs
+output "ecr_repository_url" {
+  description = "URL od the ECR repository"
+  value = aws_ecr_repository.app.repository_url
+}
+
 output "app_url" {
   value = "http://${aws_lb.main.dns_name}"
   description = "Application URL using ALB DNS name"
@@ -262,4 +285,9 @@ output "custom_domain" {
 output "load_balancer_dns" {
   value = aws_lb.main.dns_name
   description = "Load balancer DNS name"
+}
+
+output "nameservers" {
+  description = "Nameservers for the Route 53 zone. Update these in your registrar's settings for the domain."
+  value = aws_route53_zone.main.name_servers
 }
