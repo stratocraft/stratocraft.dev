@@ -12,8 +12,12 @@ variable "aws_subnet_cidr_block" {
   default = "10.0.1.0/24"
 }
 
-variable "aws_availability_zone" {
+variable "aws_primary_availability_zone" {
   default = "us-east-2a"
+}
+
+variable "aws_secondary_availability_zone" {
+  default = "us-east-2b"
 }
 
 variable "environment" {

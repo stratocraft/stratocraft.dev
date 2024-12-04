@@ -22,10 +22,16 @@ resource "aws_vpc" "main" {
   }
 }
 
-resource "aws_subnet" "main" {
+resource "aws_subnet" "primary" {
   vpc_id = aws_vpc.main.id
   cidr_block = var.aws_subnet_cidr_block
-  availability_zone = var.aws_availability_zone
+  availability_zone = var.aws_primary_availability_zone
+}
+
+resource "aws_subnet" "secondary" {
+  vpc_id = aws_vpc.main.id
+  cidr_block = var.aws_subnet_cidr_block
+  availability_zone = var.aws_secondary_availability_zone
 }
 
 resource "aws_internet_gateway" "main" {
@@ -41,7 +47,12 @@ resource "aws_route_table" "main" {
 }
 
 resource "aws_route_table_association" "main" {
-  subnet_id = aws_subnet.main.id
+  subnet_id = aws_subnet.primary.id
+  route_table_id = aws_route_table.main.id
+}
+
+resource "aws_route_table_association" "secondary" {
+  subnet_id = aws_subnet.secondary.id
   route_table_id = aws_route_table.main.id
 }
 
@@ -51,7 +62,7 @@ resource "aws_lb" "main" {
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.lb.id]
-  subnets            = [aws_subnet.main.id]
+  subnets            = [aws_subnet.primary.id, aws_subnet.secondary.id]
 }
 
 resource "aws_lb_listener" "http" {
@@ -147,7 +158,7 @@ resource "aws_ecs_service" "app" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = [aws_subnet.main.id]
+    subnets         = [aws_subnet.primary.id, aws_subnet.secondary.id]
     security_groups = [aws_security_group.ecs.id]
     assign_public_ip = true
   }
