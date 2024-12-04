@@ -14,7 +14,7 @@ provider "aws" {
 
 # VPC
 resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = var.aws_vpc_cidr_block
   enable_dns_hostnames = true
   enable_dns_support = true
 
@@ -25,8 +25,8 @@ resource "aws_vpc" "main" {
 
 resource "aws_subnet" "main" {
   vpc_id = aws_vpc.main.id
-  cidr_block = "10.0.1.0/24"
-  availability_zone = "us-east-1a"
+  cidr_block = var.aws_subnet_cidr_block
+  availability_zone = var.aws_availability_zone
 }
 
 resource "aws_internet_gateway" "main" {
