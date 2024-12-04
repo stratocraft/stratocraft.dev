@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"sort"
 	"strings"
@@ -32,7 +33,10 @@ func NewContentManger(repoOwner, repoName, githubToken, webhookSecret string) *C
 }
 
 func (cm *ContentManager) listRepoContent(path string) ([]githubContent, error) {
-	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/contents/%s", cm.repoOwner, cm.repoName, path)
+	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/contents/%s",
+		cm.repoOwner, cm.repoName, path)
+
+	log.Printf("fetching content from: %s", url)
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -48,8 +52,19 @@ func (cm *ContentManager) listRepoContent(path string) ([]githubContent, error) 
 	}
 	defer resp.Body.Close()
 
+	// Handle single file response
+	var singleContent githubContent
+	if err := json.NewDecoder(resp.Body).Decode(&singleContent); err == nil {
+		return []githubContent{singleContent}, nil
+	}
+
+	// Reset response body for array parsing
+	resp.Body.Close()
+	resp, _ = cm.client.Do(req)
+	defer resp.Body.Close()
+
 	var contents []githubContent
-	if err = json.NewDecoder(resp.Body).Decode(&contents); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&contents); err != nil {
 		return nil, err
 	}
 
@@ -113,7 +128,7 @@ func matchesAllTerms(post Post, terms []string) bool {
 
 func (cm *ContentManager) RefreshContent() error {
 	// List files in content directory
-	files, err := cm.listRepoContent("content/posts")
+	files, err := cm.listRepoContent("")
 	if err != nil {
 		return fmt.Errorf("failed to list content: %v", err)
 	}
@@ -138,6 +153,8 @@ func (cm *ContentManager) RefreshContent() error {
 
 		newPosts[post.Slug] = post
 	}
+
+	log.Printf("found %d posts, files %v", len(newPosts), files)
 
 	// Update posts atomically
 	cm.Lock()

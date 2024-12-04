@@ -203,7 +203,3 @@
         @apply text-sm md:text-base text-zinc-300;
     }
 }
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;

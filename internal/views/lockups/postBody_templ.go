@@ -10,7 +10,9 @@ import "context"
 import "io"
 import "bytes"
 
-import "github.com/stratocraft/stratocraft.dev/internal/contentmanager"
+import (
+	"github.com/stratocraft/stratocraft.dev/internal/contentmanager"
+)
 
 func PostBody(post contentmanager.Post) templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {

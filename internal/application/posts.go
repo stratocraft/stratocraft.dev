@@ -19,5 +19,8 @@ func (a *Application) Post(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusNotFound)
 	}
 
+	//chromaCSS, _ := styles.Get("catppuccin-mocha").Builder().Build()
+
+	//return pages.Post(post, chromaCSS).Render(c.Request().Context(), c.Response().Writer)
 	return pages.Post(post).Render(c.Request().Context(), c.Response().Writer)
 }

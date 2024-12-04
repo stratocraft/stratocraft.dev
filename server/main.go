@@ -4,32 +4,9 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/stratocraft/stratocraft.dev/internal/application"
-	"log"
-	"os"
 )
 
 func main() {
-	// Read environment variables on startup
-	repoOwner := os.Getenv("GH_REPO_OWNER")
-	if repoOwner == "" {
-		log.Fatal("GH_REPO_OWNER environment variable not set!")
-	}
-
-	repoName := os.Getenv("GH_REPO_NAME")
-	if repoName == "" {
-		log.Fatal("GH_REPO_NAME environment variable not set!")
-	}
-
-	token := os.Getenv("GH_TOKEN")
-	if token == "" {
-		log.Fatal("GH_TOKEN environment variable not set!")
-	}
-
-	secret := os.Getenv("GH_WEBHOOK_SECRET")
-	if secret == "" {
-		log.Fatal("GH_WEBHOOK_SECRET environment variable not set!")
-	}
-
 	// Instantiate a new echo app
 	e := echo.New()
 
@@ -45,7 +22,8 @@ func main() {
 	e.File("/robots.txt", "public/txt/robots.txt")
 
 	// Instantiate a new instance of Application
-	app := application.NewApplication(repoOwner, repoName, token, secret)
+	//app := application.NewApplication(repoOwner, repoName, token, secret)
+	app := application.NewApplication()
 
 	// Define routes
 	e.GET("/", app.Home)

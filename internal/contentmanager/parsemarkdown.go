@@ -2,9 +2,10 @@ package contentmanager
 
 import (
 	"bytes"
-	"github.com/microcosm-cc/bluemonday"
-	"github.com/russross/blackfriday/v2"
 	"github.com/spf13/viper"
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/renderer/html"
 	"regexp"
 	"strings"
 	"time"
@@ -16,7 +17,8 @@ func parseMarkdown(content string) (Post, error) {
 		return Post{}, err
 	}
 
-	html, err := markdownToHtml([]byte(body))
+	//style := styles.Get("monokai")
+	output, err := markdownToHtml([]byte(body))
 	if err != nil {
 		return Post{}, err
 	}
@@ -26,7 +28,7 @@ func parseMarkdown(content string) (Post, error) {
 		Date:        frontMatter.Date,
 		DisplayDate: frontMatter.Date.Format(time.RFC3339),
 		Title:       frontMatter.Title,
-		Content:     html,
+		Content:     output,
 		RawContent:  body,
 		Slug:        frontMatter.Slug,
 		Tags:        frontMatter.Tags,
@@ -55,11 +57,31 @@ func parseFrontMatter(markdown []byte) (FrontMatter, string, error) {
 }
 
 func markdownToHtml(markdown []byte) (string, error) {
-	output := blackfriday.Run(markdown)
-	p := bluemonday.UGCPolicy()
-	p.AllowAttrs("class").Matching(regexp.MustCompile("^language-[a-zA-Z0-9]+$")).OnElements("code")
-	p.RequireParseableURLs(true)
-	p.AddTargetBlankToFullyQualifiedLinks(true)
+	md := goldmark.New(
+		goldmark.WithExtensions(
+			extension.GFM,
+		),
+		goldmark.WithRendererOptions(
+			html.WithUnsafe(),
+		),
+		goldmark.WithExtensions(
+			extension.Linkify,
+		),
+	)
 
-	return string(p.SanitizeBytes(output)), nil
+	var buf bytes.Buffer
+	if err := md.Convert(markdown, &buf); err != nil {
+		return "", err
+	}
+
+	output := string(buf.Bytes())
+
+	// Replace target="_blank" for links
+	output = strings.ReplaceAll(output, `<a href=`, `<a target="_blank" href=`)
+
+	// Fix code classes for highlight.js
+	codePattern := regexp.MustCompile(`<pre><code class="language-(\w+)">`)
+	output = codePattern.ReplaceAllString(output, `<pre><code class="$1">`)
+
+	return output, nil
 }
