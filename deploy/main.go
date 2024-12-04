@@ -19,7 +19,7 @@ func main() {
 							RepoCloneUrl: pulumi.String("https://github.com/stratocraft/stratocraft.dev.git"),
 							Branch:       pulumi.String("main"),
 						},
-						SourceDir:       pulumi.String("/"),
+						SourceDir:       pulumi.String("/server"),
 						BuildCommand:    pulumi.String("go mod download && CGO_ENABLED=0 go build -o /app/server server/main.go"),
 						RunCommand:      pulumi.String("/app/server"),
 						HttpPort:        pulumi.Int(8080),
