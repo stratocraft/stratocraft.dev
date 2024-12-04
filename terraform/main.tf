@@ -24,13 +24,13 @@ resource "aws_vpc" "main" {
 
 resource "aws_subnet" "primary" {
   vpc_id = aws_vpc.main.id
-  cidr_block = var.aws_subnet_cidr_block
+  cidr_block = var.aws_primary_subnet_cidr_block
   availability_zone = var.aws_primary_availability_zone
 }
 
 resource "aws_subnet" "secondary" {
   vpc_id = aws_vpc.main.id
-  cidr_block = var.aws_subnet_cidr_block
+  cidr_block = var.aws_secondary_subnet_cidr_block
   availability_zone = var.aws_secondary_availability_zone
 }
 
