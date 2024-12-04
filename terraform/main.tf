@@ -7,7 +7,6 @@ terraform {
   }
 }
 
-# Provider configuration
 provider "aws" {
   region = var.aws_region
 }
@@ -44,6 +43,73 @@ resource "aws_route_table" "main" {
 resource "aws_route_table_association" "main" {
   subnet_id = aws_subnet.main.id
   route_table_id = aws_route_table.main.id
+}
+
+# Load Balancer
+resource "aws_lb" "main" {
+  name               = "${var.project_name}-lb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.lb.id]
+  subnets            = [aws_subnet.main.id]
+}
+
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app.arn
+  }
+}
+
+resource "aws_lb_target_group" "app" {
+  name        = "${var.project_name}-tg"
+  port        = 8080
+  protocol    = "HTTP"
+  vpc_id      = aws_vpc.main.id
+  target_type = "ip"
+}
+
+# Security Groups
+resource "aws_security_group" "lb" {
+  name   = "${var.project_name}-lb"
+  vpc_id = aws_vpc.main.id
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "ecs" {
+  name   = var.ecs_security_group_name
+  vpc_id = aws_vpc.main.id
+
+  ingress {
+    from_port       = 8080
+    to_port         = 8080
+    protocol        = "tcp"
+    security_groups = [aws_security_group.lb.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 # ECR and ECS
@@ -83,26 +149,13 @@ resource "aws_ecs_service" "app" {
   network_configuration {
     subnets         = [aws_subnet.main.id]
     security_groups = [aws_security_group.ecs.id]
-  }
-}
-
-# Security
-resource "aws_security_group" "ecs" {
-  name   = var.ecs_security_group_name
-  vpc_id = aws_vpc.main.id
-
-  ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    assign_public_ip = true
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+  load_balancer {
+    target_group_arn = aws_lb_target_group.app.arn
+    container_name   = "app"
+    container_port   = 8080
   }
 }
 
@@ -136,6 +189,10 @@ resource "aws_route53_record" "app" {
   zone_id = aws_route53_zone.main.id
   name    = var.aws_route53_domain
   type    = "A"
-  records = [aws_ecs_service.app.id]
-  ttl     = 300
+
+  alias {
+    name                   = aws_lb.main.dns_name
+    zone_id                = aws_lb.main.zone_id
+    evaluate_target_health = true
+  }
 }
