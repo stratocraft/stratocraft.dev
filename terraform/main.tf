@@ -293,7 +293,7 @@ resource "aws_acm_certificate_validation" "acm_certificate_validation" {
   certificate_arn         = aws_acm_certificate.main.arn
   validation_record_fqdns = [for record in aws_route53_record.aws_route53_record_validation : record.fqdn]
   timeouts {
-    create = "30m"
+    create = "60m"
   }
 }
 
@@ -330,6 +330,11 @@ resource "aws_lb_listener" "https" {
 }
 
 # outputs
+output "nameservers" {
+  description = "Nameservers for the Route 53 zone. Update these in your registrar's settings for the domain."
+  value = aws_route53_zone.main.name_servers
+}
+
 output "ecr_repository_url" {
   description = "URL od the ECR repository"
   value = aws_ecr_repository.app.repository_url
@@ -353,9 +358,4 @@ output "custom_domain" {
 output "load_balancer_dns" {
   value = aws_lb.main.dns_name
   description = "Load balancer DNS name"
-}
-
-output "nameservers" {
-  description = "Nameservers for the Route 53 zone. Update these in your registrar's settings for the domain."
-  value = aws_route53_zone.main.name_servers
 }
