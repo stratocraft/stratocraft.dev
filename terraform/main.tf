@@ -200,7 +200,12 @@ resource "aws_ecs_service" "app" {
 
   desired_count = 1
 
-  depends_on = [aws_lb_listener.http]
+  depends_on = [
+    aws_lb_listener.http,
+    aws_lb_listener.https,
+    aws_lb_target_group.app,
+    aws_iam_role_policy_attachment.ecs_execution
+  ]
 }
 
 # IAM
@@ -280,6 +285,8 @@ resource "aws_route53_record" "aws_route53_record_validation" {
   type    = each.value.type
   records = [each.value.record]
   ttl     = 60
+
+  depends_on = [aws_route53_zone.main]
 }
 
 resource "aws_acm_certificate_validation" "acm_certificate_validation" {
