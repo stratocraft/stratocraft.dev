@@ -199,6 +199,8 @@ resource "aws_ecs_service" "app" {
   }
 
   desired_count = 1
+
+  depends_on = [aws_lb_listener.http]
 }
 
 # IAM
@@ -263,7 +265,7 @@ resource "aws_acm_certificate" "main" {
   }
 }
 
-resource "aws_route53_record" "acm_validation" {
+resource "aws_route53_record" "aws_route53_record_validation" {
   for_each = {
     for dvo in aws_acm_certificate.main.domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
@@ -280,9 +282,9 @@ resource "aws_route53_record" "acm_validation" {
   ttl     = 60
 }
 
-resource "aws_acm_certificate_validation" "main" {
+resource "aws_acm_certificate_validation" "acm_certificate_validation" {
   certificate_arn         = aws_acm_certificate.main.arn
-  validation_record_fqdns = [for record in aws_route53_record.acm_validation : record.fqdn]
+  validation_record_fqdns = [for record in aws_route53_record.aws_route53_record_validation : record.fqdn]
   timeouts {
     create = "30m"
   }
@@ -317,7 +319,7 @@ resource "aws_lb_listener" "https" {
     target_group_arn = aws_lb_target_group.app.arn
   }
 
-  depends_on = [aws_acm_certificate_validation.main]
+  depends_on = [aws_acm_certificate_validation.acm_certificate_validation]
 }
 
 # outputs
