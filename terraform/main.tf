@@ -250,13 +250,13 @@ resource "aws_acm_certificate" "main" {
   }
 }
 
-resource "aws_acm_certificate_validation" "main" {
-  certificate_arn         = aws_acm_certificate.main.arn
-  validation_record_fqdns = [for record in aws_route53_record.validation : record.fqdn]
-  timeouts {
-    create = "30m"
-  }
-}
+# resource "aws_acm_certificate_validation" "main" {
+#   certificate_arn         = aws_acm_certificate.main.arn
+#   validation_record_fqdns = [for record in aws_route53_record.validation : record.fqdn]
+#   timeouts {
+#     create = "30m"
+#   }
+# }
 
 resource "aws_route53_record" "validation" {
   for_each = {
@@ -288,7 +288,8 @@ resource "aws_lb_listener" "https" {
     target_group_arn = aws_lb_target_group.app.arn
   }
 
-  depends_on = [aws_acm_certificate_validation.main]
+  # depends_on = [aws_acm_certificate_validation.main]
+  depends_on = [aws_acm_certificate.main]
 }
 
 # outputs
