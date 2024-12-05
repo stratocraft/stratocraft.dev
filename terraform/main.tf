@@ -2,7 +2,7 @@ terraform {
   required_providers {
     aws = {
       source = "hashicorp/aws"
-      version = "~> 3.0"
+      version = "~> 5.0"
     }
   }
 }
@@ -28,6 +28,11 @@ resource "aws_subnet" "primary" {
   vpc_id = aws_vpc.main.id
   cidr_block = var.aws_primary_subnet_cidr_block
   availability_zone = var.aws_primary_availability_zone
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "${var.project_name}-primary-subnet"
+  }
 }
 
 # Secondary Subnet
@@ -35,11 +40,20 @@ resource "aws_subnet" "secondary" {
   vpc_id = aws_vpc.main.id
   cidr_block = var.aws_secondary_subnet_cidr_block
   availability_zone = var.aws_secondary_availability_zone
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "${var.project_name}-secondary-subnet"
+  }
 }
 
 # Internet Gateway
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
+
+  tags = {
+    Name = "${var.project_name}-igw"
+  }
 }
 
 # Route Tables
@@ -69,22 +83,6 @@ resource "aws_lb" "main" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.lb.id]
   subnets            = [aws_subnet.primary.id, aws_subnet.secondary.id]
-}
-
-# Load Balancer HTTP Listener
-resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.main.arn
-  port              = "80"
-  protocol          = "HTTP"
-
-  default_action {
-    type = "redirect"
-    redirect {
-      port = "443"
-      protocol = "HTTPS"
-      status_code = "HTTP_301"
-    }
-  }
 }
 
 # Load Balancer Target Group
@@ -170,10 +168,12 @@ resource "aws_ecs_task_definition" "app" {
   execution_role_arn      = aws_iam_role.ecs_execution.arn
 
   container_definitions = jsonencode([{
-    name  = "app"
+    name  = "${var.project_name}-container"
     image = "${aws_ecr_repository.app.repository_url}:latest"
+    essential = true
     portMappings = [{
       containerPort = 8080
+      hostPort = 8080
       protocol      = "tcp"
     }]
   }])
@@ -184,7 +184,6 @@ resource "aws_ecs_service" "app" {
   name            = var.ecs_service_name
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.app.arn
-  desired_count   = 1
   launch_type     = "FARGATE"
 
   network_configuration {
@@ -195,9 +194,11 @@ resource "aws_ecs_service" "app" {
 
   load_balancer {
     target_group_arn = aws_lb_target_group.app.arn
-    container_name   = "app"
+    container_name   = "${var.project_name}-container"
     container_port   = 8080
   }
+
+  desired_count = 1
 }
 
 # IAM
@@ -226,9 +227,21 @@ resource "aws_route53_zone" "main" {
   name = var.aws_route53_zone
 }
 
-resource "aws_route53_record" "app" {
+resource "aws_route53_record" "apex" {
   zone_id = aws_route53_zone.main.id
   name    = var.aws_route53_domain
+  type    = "A"
+
+  alias {
+    name                   = aws_lb.main.dns_name
+    zone_id                = aws_lb.main.zone_id
+    evaluate_target_health = true
+  }
+}
+
+resource "aws_route53_record" "www" {
+  zone_id = aws_route53_zone.main.id
+  name    = "www.${var.aws_route53_domain}"
   type    = "A"
 
   alias {
@@ -250,15 +263,7 @@ resource "aws_acm_certificate" "main" {
   }
 }
 
-# resource "aws_acm_certificate_validation" "main" {
-#   certificate_arn         = aws_acm_certificate.main.arn
-#   validation_record_fqdns = [for record in aws_route53_record.validation : record.fqdn]
-#   timeouts {
-#     create = "30m"
-#   }
-# }
-
-resource "aws_route53_record" "validation" {
+resource "aws_route53_record" "acm_validation" {
   for_each = {
     for dvo in aws_acm_certificate.main.domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
@@ -275,6 +280,30 @@ resource "aws_route53_record" "validation" {
   ttl     = 60
 }
 
+resource "aws_acm_certificate_validation" "main" {
+  certificate_arn         = aws_acm_certificate.main.arn
+  validation_record_fqdns = [for record in aws_route53_record.acm_validation : record.fqdn]
+  timeouts {
+    create = "30m"
+  }
+}
+
+# Load Balancer HTTP Listener
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.main.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+    redirect {
+      port = "443"
+      protocol = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
 # Update Load Balancer listener to HTTPS
 resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.main.arn
@@ -288,8 +317,7 @@ resource "aws_lb_listener" "https" {
     target_group_arn = aws_lb_target_group.app.arn
   }
 
-  # depends_on = [aws_acm_certificate_validation.main]
-  depends_on = [aws_acm_certificate.main]
+  depends_on = [aws_acm_certificate_validation.main]
 }
 
 # outputs
@@ -309,7 +337,7 @@ output "app_url_https" {
 }
 
 output "custom_domain" {
-  value = aws_route53_record.app.name
+  value = aws_route53_record.apex.name
   description = "Custom domain name"
 }
 
