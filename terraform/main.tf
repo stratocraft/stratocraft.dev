@@ -78,8 +78,12 @@ resource "aws_lb_listener" "http" {
   protocol          = "HTTP"
 
   default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.app.arn
+    type = "redirect"
+    redirect {
+      port = "443"
+      protocol = "HTTPS"
+      status_code = "HTTP_301"
+    }
   }
 }
 
@@ -90,6 +94,14 @@ resource "aws_lb_target_group" "app" {
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
   target_type = "ip"
+
+  health_check {
+    path = "/health"
+    healthy_threshold = 2
+    unhealthy_threshold = 10
+    timeout = 30
+    interval = 60
+  }
 }
 
 # Security Groups
@@ -101,6 +113,13 @@ resource "aws_security_group" "lb" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port = 443
+    to_port = 443
+    protocol = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -234,6 +253,9 @@ resource "aws_acm_certificate" "main" {
 resource "aws_acm_certificate_validation" "main" {
   certificate_arn         = aws_acm_certificate.main.arn
   validation_record_fqdns = [for record in aws_route53_record.validation : record.fqdn]
+  timeouts {
+    create = "30m"
+  }
 }
 
 resource "aws_route53_record" "validation" {
@@ -245,6 +267,7 @@ resource "aws_route53_record" "validation" {
     }
   }
 
+  allow_overwrite = true
   zone_id = aws_route53_zone.main.id
   name    = each.value.name
   type    = each.value.type
@@ -274,8 +297,13 @@ output "ecr_repository_url" {
   value = aws_ecr_repository.app.repository_url
 }
 
-output "app_url" {
+output "app_url_http" {
   value = "http://${aws_lb.main.dns_name}"
+  description = "Application URL using ALB DNS name"
+}
+
+output "app_url_https" {
+  value = "https://${aws_lb.main.dns_name}"
   description = "Application URL using ALB DNS name"
 }
 
