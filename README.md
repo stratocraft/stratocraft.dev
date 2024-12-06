@@ -8,3 +8,4 @@ and deployed with Terraform Cloud and GitHub Actions.
 
 ## Branch Protection
 
+GPG
