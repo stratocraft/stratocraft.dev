@@ -343,7 +343,7 @@ resource "aws_secretsmanager_secret" "github_config" {
 resource "aws_secretsmanager_secret_version" "github_config" {
   secret_id = aws_secretsmanager_secret.github_config.id
 
-  secret_string = jsondecode({
+  secret_string = jsonencode({
     GITHUB_OWNER = var.github_owner
     GITHUB_REPO = var.github_repo
     GITHUB_TOKEN = var.github_token
