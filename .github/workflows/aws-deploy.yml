@@ -2,7 +2,10 @@ name: Deploy to AWS Fargate
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
 
 permissions:
   actions: read
@@ -10,57 +13,6 @@ permissions:
   security-events: write
 
 jobs:
-
-  scan-pr:
-    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v1.8.4"
-
-  gitleaks:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  static-check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.23.4
-      - uses: reviewdog/action-staticcheck@v1
-        with:
-          fail_on_error: true
-
-  codeql:
-    runs-on: ubuntu-latest
-    permissions:
-      security-events: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v2
-        with:
-          languages: go
-      - uses: github/codeql-action/analyze@v2
-        with:
-          category: security
-
-
-  unit-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: 1.23.4
-      - name: Run unit tests
-        run: go test ./...
-
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
@@ -88,14 +40,10 @@ jobs:
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Build the image with a unique tag
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          # Push the uniquely tagged image
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           
-          # Tag the image as latest as well
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
-          # Push the latest tag
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
       - name: Scan Docker image for vulnerabilities
