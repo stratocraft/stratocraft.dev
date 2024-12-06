@@ -37,7 +37,12 @@ jobs:
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build \
+          --build-arg GH_OWNER=${{ secrets.GH_OWNER }} \
+          --build-arg GH_REPO=${{ secrets.GH_REPO }} \
+          --build-arg GH_TOKEN=${{ secrets.GH_TOKEN }} \
+          --build-arg WEBHOOK_SECRET=${{ secrets.WEBHOOK_SECRET }} \
+          -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG . \
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
@@ -55,7 +60,7 @@ jobs:
           image: ${{ steps.build-image.outputs.image }}
 
       - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ${{ vars.ECS_SERVICE }}

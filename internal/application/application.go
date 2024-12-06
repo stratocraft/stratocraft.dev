@@ -11,17 +11,17 @@ type Application struct {
 }
 
 func NewApplication() *Application {
-	repoOwner := os.Getenv("GITHUB_OWNER")
+	repoOwner := os.Getenv("GH_OWNER")
 	if repoOwner == "" {
 		log.Fatal("GH_REPO_OWNER environment variable not set!")
 	}
 
-	repoName := os.Getenv("GITHUB_REPO")
+	repoName := os.Getenv("GH_REPO")
 	if repoName == "" {
 		log.Fatal("GH_REPO_NAME environment variable not set!")
 	}
 
-	token := os.Getenv("GITHUB_TOKEN")
+	token := os.Getenv("GH_TOKEN")
 	if token == "" {
 		log.Fatal("GH_TOKEN environment variable not set!")
 	}

@@ -29,6 +29,19 @@ COPY go.mod go.sum ./
 # or go.sum change.
 RUN go mod download
 
+# Environment variables:
+# Set and source environment variables used by the container.
+ARG GH_OWNER
+ARG GH_REPO
+ARG GH_TOKEN
+ARG WEBHOOK_SECRET
+
+ENV GH_OWNER=$GH_OWNER
+ENV GH_REPO=$GH_REPO
+ENV GH_TOKEN=$GH_TOKEN
+ENV WEBHOOK_SECRET=$WEBHOOK_SECRET
+
+
 # Copy the source code:
 # This happens after dependency download because source code changes
 # more frequently and this keeps builds faster by not invalidating
