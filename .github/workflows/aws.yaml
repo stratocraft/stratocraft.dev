@@ -27,13 +27,25 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Login to Amazon ECR
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # Set the image URL to use in the ECS task definition
-      - name: Set Image URL
-        id: set-image
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          echo "image=${{ secrets.ECR_REGISTRY }}/${{ vars.ECR_REPOSITORY }}:${{ github.sha }}" >> $GITHUB_ENV
+          # Build the image with a unique tag
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          # Push the uniquely tagged image
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          
+          # Tag the image as latest as well
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          # Push the latest tag
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
       - name: Download and clean task definition
         run: |
@@ -42,9 +54,12 @@ jobs:
           > task-definition.json
 
       - name: Update task definition with new image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
         run: |
-          # Replace the image field in the task definition with the new image URL
-          sed -i 's|"image": "[^"]*"|"image": "${{ env.image }}"|' task-definition.json
+          # Replace the image field in the task definition with the 'latest' image
+          sed -i "s|\"image\": \"[^\"]*\"|\"image\": \"$ECR_REGISTRY/$ECR_REPOSITORY:latest\"|" task-definition.json
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2

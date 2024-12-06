@@ -1,9 +1,10 @@
 package application
 
 import (
-	"github.com/stratocraft/stratocraft.dev/internal/contentmanager"
 	"log"
 	"os"
+
+	"github.com/stratocraft/stratocraft.dev/internal/contentmanager"
 )
 
 type Application struct {
@@ -13,7 +14,7 @@ type Application struct {
 func NewApplication() *Application {
 	repoOwner := os.Getenv("GITHUB_OWNER")
 	if repoOwner == "" {
-		log.Fatal("GITHUB_REPO_OWNER environment variable not set!")
+		log.Fatal("GITHUB_OWNER environment variable not set!")
 	}
 
 	repoName := os.Getenv("GITHUB_REPO")
