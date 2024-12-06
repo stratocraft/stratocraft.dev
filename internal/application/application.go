@@ -11,24 +11,24 @@ type Application struct {
 }
 
 func NewApplication() *Application {
-	repoOwner := os.Getenv("GH_OWNER")
+	repoOwner := os.Getenv("GITHUB_OWNER")
 	if repoOwner == "" {
-		log.Fatal("GH_REPO_OWNER environment variable not set!")
+		log.Fatal("GITHUB_REPO_OWNER environment variable not set!")
 	}
 
-	repoName := os.Getenv("GH_REPO")
+	repoName := os.Getenv("GITHUB_REPO")
 	if repoName == "" {
-		log.Fatal("GH_REPO_NAME environment variable not set!")
+		log.Fatal("GITHUB_REPO_NAME environment variable not set!")
 	}
 
-	token := os.Getenv("GH_TOKEN")
+	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {
-		log.Fatal("GH_TOKEN environment variable not set!")
+		log.Fatal("GITHUB_TOKEN environment variable not set!")
 	}
 
 	secret := os.Getenv("WEBHOOK_SECRET")
 	if secret == "" {
-		log.Fatal("GH_WEBHOOK_SECRET environment variable not set!")
+		log.Fatal("GITHUB_WEBHOOK_SECRET environment variable not set!")
 	}
 
 	cm := contentmanager.NewContentManger(repoOwner, repoName, token, secret)

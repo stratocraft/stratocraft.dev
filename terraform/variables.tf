@@ -77,3 +77,27 @@ variable aws_route53_zone {
 variable aws_route53_domain {
   default = "stratocraft.dev"
 }
+
+variable "github_owner" {
+  description = "GitHub Repo Owner"
+  type = string
+  sensitive = false
+}
+
+variable "github_repo" {
+  description = "GitHub Repo Name"
+  type = string
+  sensitive = false
+}
+
+variable "github_token" {
+  description = "GitHub Token"
+  type = string
+  sensitive = true
+}
+
+variable "webhook_secret" {
+  description = "WebHook Secret"
+  type = string
+  sensitive = true
+}

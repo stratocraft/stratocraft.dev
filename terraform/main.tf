@@ -329,6 +329,28 @@ resource "aws_lb_listener" "https" {
   depends_on = [aws_acm_certificate_validation.acm_certificate_validation]
 }
 
+# Secrets and Environment Variables
+resource "aws_secretsmanager_secret" "github_config" {
+  name = "stratocraft/github"
+  description = "Environment variables required by the app"
+
+  tags = {
+    Environment = terraform.workspace
+    Application = "stratocraft-dev"
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "github_config" {
+  secret_id = aws_secretsmanager_secret.github_config.id
+
+  secret_string = jsondecode({
+    GITHUB_OWNER = var.github_owner
+    GITHUB_REPO = var.github_repo
+    GITHUB_TOKEN = var.github_token
+    WEBHOOL_SECRET = var.webhook_secret
+  })
+}
+
 # outputs
 output "nameservers" {
   description = "Nameservers for the Route 53 zone. Update these in your registrar's settings for the domain."
