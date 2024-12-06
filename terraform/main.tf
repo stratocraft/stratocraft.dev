@@ -161,21 +161,40 @@ resource "aws_ecs_cluster" "main" {
 # ECS Task Definition
 resource "aws_ecs_task_definition" "app" {
   family                   = var.ecs_task_definition_family
-  network_mode            = "awsvpc"
+  network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                     = 256
-  memory                  = 512
-  execution_role_arn      = aws_iam_role.ecs_execution.arn
+  cpu                      = 256
+  memory                   = 512
+  execution_role_arn       = aws_iam_role.ecs_execution.arn
 
   container_definitions = jsonencode([{
-    name  = "${var.project_name}-container"
-    image = "${aws_ecr_repository.app.repository_url}:latest"
-    essential = true
+    name         = "${var.project_name}-container"
+    image        = "${aws_ecr_repository.app.repository_url}:latest"
+    essential    = true
     portMappings = [{
       containerPort = 8080
-      hostPort = 8080
+      hostPort      = 8080
       protocol      = "tcp"
     }]
+    # Each secret is injected as its own environment variable
+    secrets = [
+      {
+        name      = "GITHUB_OWNER"
+        valueFrom = aws_secretsmanager_secret.github_owner.arn
+      },
+      {
+        name      = "GITHUB_REPO"
+        valueFrom = aws_secretsmanager_secret.github_repo.arn
+      },
+      {
+        name      = "GITHUB_TOKEN"
+        valueFrom = aws_secretsmanager_secret.github_token.arn
+      },
+      {
+        name      = "WEBHOOK_SECRET"
+        valueFrom = aws_secretsmanager_secret.webhook_secret.arn
+      }
+    ]
   }])
 }
 
@@ -227,6 +246,33 @@ resource "aws_iam_role" "ecs_execution" {
 resource "aws_iam_role_policy_attachment" "ecs_execution" {
   role       = aws_iam_role.ecs_execution.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_policy" "ecs_secrets_policy" {
+  name        = "ecs-secrets-policy"
+  description = "Policy for ECS tasks to read GitHub secrets"
+  policy      = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "secretsmanager:GetSecretValue"
+        ],
+        Resource = [
+          aws_secretsmanager_secret.github_owner.arn,
+          aws_secretsmanager_secret.github_repo.arn,
+          aws_secretsmanager_secret.github_token.arn,
+          aws_secretsmanager_secret.webhook_secret.arn
+        ]
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_execution_secrets" {
+  role       = aws_iam_role.ecs_execution.name
+  policy_arn = aws_iam_policy.ecs_secrets_policy.arn
 }
 
 # DNS (Route 53)
@@ -330,8 +376,8 @@ resource "aws_lb_listener" "https" {
 }
 
 # Secrets and Environment Variables
-resource "aws_secretsmanager_secret" "github_config" {
-  name = "stratocraft/github"
+resource "aws_secretsmanager_secret" "github_owner" {
+  name = "stratocraft/github_owner"
   description = "Environment variables required by the app"
 
   tags = {
@@ -340,15 +386,54 @@ resource "aws_secretsmanager_secret" "github_config" {
   }
 }
 
-resource "aws_secretsmanager_secret_version" "github_config" {
-  secret_id = aws_secretsmanager_secret.github_config.id
+resource "aws_secretsmanager_secret_version" "github_owner" {
+  secret_id = aws_secretsmanager_secret.github_owner.id
+  secret_string = var.github_owner
+}
 
-  secret_string = jsonencode({
-    GITHUB_OWNER = var.github_owner
-    GITHUB_REPO = var.github_repo
-    GITHUB_TOKEN = var.github_token
-    WEBHOOK_SECRET = var.webhook_secret
-  })
+resource "aws_secretsmanager_secret" "github_repo" {
+  name = "stratocraft/github_repo"
+  description = "Environment variables required by the app"
+
+  tags = {
+    Environment = terraform.workspace
+    Application = "stratocraft-dev"
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "github_repo" {
+  secret_id = aws_secretsmanager_secret.github_repo.id
+  secret_string = var.github_repo
+}
+
+resource "aws_secretsmanager_secret" "github_token" {
+  name = "stratocraft/github_token"
+  description = "Environment variables required by the app"
+
+  tags = {
+    Environment = terraform.workspace
+    Application = "stratocraft-dev"
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "github_token" {
+  secret_id = aws_secretsmanager_secret.github_token.id
+  secret_string = var.github_token
+}
+
+resource "aws_secretsmanager_secret" "webhook_secret" {
+  name = "stratocraft/webhook_secret"
+  description = "Environment variables required by the app"
+
+  tags = {
+    Environment = terraform.workspace
+    Application = "stratocraft-dev"
+  }
+}
+
+resource "aws_secretsmanager_secret_version" "webhook_secret" {
+  secret_id = aws_secretsmanager_secret.webhook_secret.id
+  secret_string = var.webhook_secret
 }
 
 # outputs
