@@ -6,6 +6,3 @@ The site is built with Go, htmx, a-h/templ and TailwindCSS hosted on AWS
 and deployed with Terraform Cloud and GitHub Actions.
 
 
-## Branch Protection
-
-GPG
