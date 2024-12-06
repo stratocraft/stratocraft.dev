@@ -82,12 +82,14 @@ variable "github_owner" {
   description = "GitHub owner/organization name"
   type        = string
   sensitive   = true
+  default = "stratocraft"
 }
 
 variable "github_repo" {
   description = "GitHub repository name"
   type        = string
   sensitive   = true
+  default = "posts"
 }
 
 variable "github_token" {
