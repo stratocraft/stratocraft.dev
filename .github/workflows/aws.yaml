@@ -8,11 +8,11 @@ permissions:
   contents: read
 
 env:
-  AWS_REGION: ${{ env.AWS_REGION }}
-  ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
-  ECS_SERVICE: ${{ env.ECS_SERVICE }}
-  ECS_CLUSTER: ${{ env.ECS_CLUSTER }}
-  CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+  ECS_SERVICE: ${{ vars.ECS_SERVICE }}
+  ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
+  CONTAINER_NAME: ${{ vars.CONTAINER_NAME }}
 
 jobs:
   deploy:
