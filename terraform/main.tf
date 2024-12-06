@@ -347,7 +347,7 @@ resource "aws_secretsmanager_secret_version" "github_config" {
     GITHUB_OWNER = var.github_owner
     GITHUB_REPO = var.github_repo
     GITHUB_TOKEN = var.github_token
-    WEBHOOL_SECRET = var.webhook_secret
+    WEBHOOK_SECRET = var.webhook_secret
   })
 }
 
