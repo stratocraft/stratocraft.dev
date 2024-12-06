@@ -14,6 +14,16 @@ jobs:
   scan-pr:
     uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v1.8.4"
 
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   static-check:
     runs-on: ubuntu-latest
     steps:
@@ -25,6 +35,20 @@ jobs:
       - uses: reviewdog/action-staticcheck@v1
         with:
           fail_on_error: true
+
+  codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v2
+        with:
+          languages: go
+      - uses: github/codeql-action/analyze@v2
+        with:
+          category: security
+
 
   unit-tests:
     runs-on: ubuntu-latest
@@ -73,6 +97,13 @@ jobs:
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
           # Push the latest tag
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Scan Docker image for vulnerabilities
+        uses: aquasecurity/trivy-action@v0.28.0
+        with:
+          image-ref: ${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}:${{ github.sha }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
 
       - name: Download and clean task definition
         run: |
