@@ -2,8 +2,9 @@
 package models
 
 import (
+	cryptorand "crypto/rand"
+	"encoding/binary"
 	"errors"
-	"math/rand"
 	"strings"
 )
 
@@ -37,6 +38,35 @@ type Password struct {
 	Length    int
 }
 
+// secureRandomInt generates a cryptographically secure random number between 0 and max
+func secureRandomInt(max int) (int, error) {
+	// Create an 8-byte buffer to store random bytes
+	// We use 8 bytes (64 bits) to ensure we have enough random data to generate
+	// numbers across the full range of uint64
+	var b [8]byte
+
+	// Read random bytes from the system's secure random number generator
+	// crypto/rand.Read uses sources like /dev/urandom on Unix systems or
+	// CryptoAPI on Windows to generate cryptographically secure random numbers
+	// The '_' discards the number of bytes read since Read always fills the buffer
+	_, err := cryptorand.Read(b[:])
+	if err != nil {
+		return 0, err
+	}
+
+	// Convert the 8 random bytes into a uint64 number
+	// binary.LittleEndian.Uint64 interprets the bytes as a 64-bit unsigned integer
+	// using little-endian byte order (least significant byte first)
+	// This gives us a random number between 0 and 2^64-1
+	n := binary.LittleEndian.Uint64(b[:])
+
+	// Convert the uint64 to a number within our desired range [0, max)
+	// We use modulo (%) to map the full uint64 range down to our target range
+	// Note: This method can introduce a small bias if max doesn't divide 2^64 evenly
+	// For password generation, this bias is negligible and doesn't affect security
+	return int(n % uint64(max)), nil
+}
+
 // GeneratePassword creates a password based on the Password struct configuration.
 // It ensures at least one character from each selected character set is included,
 // fills the password to the desired length, and then shuffles it for randomness.
@@ -45,6 +75,7 @@ func (p *Password) GeneratePassword() (string, error) {
 	p.ClampLength()
 
 	var possible, pw strings.Builder
+	requiredChars := make([]string, 0)
 
 	// resize possible to accommodate character sets
 	possible.Grow(len(Uppercase) + len(Lowercase) + len(Numbers) + len(Special))
@@ -54,19 +85,19 @@ func (p *Password) GeneratePassword() (string, error) {
 	// ensure at least one character from each selection is used
 	if p.Uppercase {
 		possible.WriteString(Uppercase)
-		pw.WriteByte(Uppercase[rand.Intn(len(Uppercase))])
+		requiredChars = append(requiredChars, Uppercase)
 	}
 	if p.Lowercase {
 		possible.WriteString(Lowercase)
-		pw.WriteByte(Lowercase[rand.Intn(len(Lowercase))])
+		requiredChars = append(requiredChars, Lowercase)
 	}
 	if p.Numbers {
 		possible.WriteString(Numbers)
-		pw.WriteByte(Numbers[rand.Intn(len(Numbers))])
+		requiredChars = append(requiredChars, Numbers)
 	}
 	if p.Special {
 		possible.WriteString(Special)
-		pw.WriteByte(Special[rand.Intn(len(Special))])
+		requiredChars = append(requiredChars, Special)
 	}
 
 	// check if at least one character set was selected, otherwise return error
@@ -74,19 +105,39 @@ func (p *Password) GeneratePassword() (string, error) {
 		return "", errors.New("no character set selected")
 	}
 
+	// Ensure we have at least one character from each required set
+	for _, charSet := range requiredChars {
+		idx, err := secureRandomInt(len(charSet))
+		if err != nil {
+			return "", err
+		}
+		pw.WriteByte(charSet[idx])
+	}
+
 	// fill the password up to the selected length
-	chars := possible.String()
-	for i := pw.Len(); i < p.Length; i++ {
-		pw.WriteByte(chars[rand.Intn(len(chars))])
+	remainingLength := p.Length - len(requiredChars)
+	possibleChars := possible.String()
+
+	for i := 0; i < remainingLength; i++ {
+		idx, err := secureRandomInt(len(possibleChars))
+		if err != nil {
+			return "", err
+		}
+
+		pw.WriteByte(possibleChars[idx])
 	}
 
 	// shuffle the password
-	password := []byte(pw.String())
-	rand.Shuffle(len(password), func(i, j int) {
-		password[i], password[j] = password[j], password[i]
-	})
+	pwBytes := []byte(pw.String())
+	for i := len(pwBytes) - 1; i > 0; i-- {
+		j, err := secureRandomInt(i + 1)
+		if err != nil {
+			return "", err
+		}
+		pwBytes[i], pwBytes[j] = pwBytes[j], pwBytes[i]
+	}
 
-	return string(password), nil
+	return string(pwBytes), nil
 }
 
 // ClampLength ensures the password length is within the allowed range.
