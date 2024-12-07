@@ -29,10 +29,16 @@ func main() {
 	e.GET("/", app.Home)
 	e.GET("/posts", app.Posts)
 	e.GET("/posts/:slug", app.Post)
-	//e.GET("/about", app.About)
-	//e.GET("/contact", app.Contact)
+	e.GET("/plan", app.Plan)
+	e.GET("/utils", app.Utils)
+	e.GET("/about", app.About)
+	e.GET("/contact", app.Contact)
 	e.GET("/sitemap.xml", app.SiteMap)
 	e.GET("/health", app.Health)
+	e.GET("/get-time", app.GetTime)
+	e.GET("/times", app.TimeUpdate)
+	e.GET("/timebot", app.TimeBot)
+	e.GET("/pwbot", app.PwBot)
 
 	// Start the app
 	e.Logger.Fatal(e.Start(":8080"))
