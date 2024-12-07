@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/stratocraft/stratocraft.dev/internal/application"
+	"github.com/stratocraft/stratocraft.dev/internal/pwbot"
 )
 
 func main() {
@@ -39,6 +40,7 @@ func main() {
 	e.GET("/times", app.TimeUpdate)
 	e.GET("/timebot", app.TimeBot)
 	e.GET("/pwbot", app.PwBot)
+	e.POST("/password", pwbot.NewPassword)
 
 	// Start the app
 	e.Logger.Fatal(e.Start(":8080"))
