@@ -1,0 +1,86 @@
+package pages
+
+import (
+    "github.com/stratocraft/stratocraft.dev/internal/views/components/shared"
+    "github.com/stratocraft/stratocraft.dev/internal/views/components/cards"
+)
+
+templ Home() {
+	@shared.Layout("Home", "Expert Cloud & DevOps engineering services. Scale your infrastructure with modern best practices, Azure, AWS, Kubernetes, and more.") {
+		<!-- Hero Section -->
+		<section class="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-900 dark:to-blue-900/20">
+			<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+				<div class="max-w-4xl mx-auto text-center">
+					<h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+						<span class="block">Cloud & DevOps</span>
+						<span class="block text-blue-600 dark:text-blue-400">Engineering Excellence</span>
+					</h1>
+					<p class="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+						Helping businesses scale their infrastructure with modern cloud practices, automation, and reliable DevOps solutions.
+					</p>
+					<div class="flex flex-col sm:flex-row gap-4 justify-center">
+						<a href="/services" class="btn-primary">
+							View Services
+						</a>
+						<a href="/contact" class="btn-secondary">
+							Get in Touch
+						</a>
+					</div>
+				</div>
+			</div>
+		</section>
+		<!-- Services Preview -->
+		<section class="py-20 bg-white dark:bg-gray-900">
+			<div class="container mx-auto px-4 sm:px-6 lg:px-8">
+				<div class="text-center mb-16">
+					<h2 class="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+						Expert Solutions
+					</h2>
+					<p class="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+						Comprehensive cloud and DevOps services to accelerate your digital transformation
+					</p>
+				</div>
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+					@cards.ServiceCard("Cloud Architecture", "Scalable, secure, and cost-effective cloud solutions tailored to your business needs.", "☁️")
+					@cards.ServiceCard("DevOps Automation", "Streamline your development lifecycle with CI/CD pipelines and automation.", "🚀")
+					@cards.ServiceCard("Infrastructure as Code", "Manage your infrastructure with version control, testing, and deployment automation.", "🏗️")
+					@cards.ServiceCard("Monitoring & Observability", "Comprehensive monitoring solutions for proactive system management.", "📊")
+					@cards.ServiceCard("Security & Compliance", "Implement security best practices and ensure regulatory compliance.", "🔒")
+					@cards.ServiceCard("Cost Optimization", "Optimize your cloud spending without compromising performance.", "💰")
+				</div>
+			</div>
+		</section>
+		<!-- Latest Blog Posts -->
+		<section class="py-20 bg-gray-50 dark:bg-gray-800">
+			<div class="container mx-auto px-4 sm:px-6 lg:px-8">
+				<div class="text-center mb-16">
+					<h2 class="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+						Latest Insights
+					</h2>
+					<p class="text-xl text-gray-600 dark:text-gray-300">
+						Stay updated with the latest in cloud technology and DevOps practices
+					</p>
+				</div>
+				<div class="text-center">
+					<a href="/blog" class="btn-primary">
+						View All Posts
+					</a>
+				</div>
+			</div>
+		</section>
+		<!-- CTA Section -->
+		<section class="py-20 bg-blue-600 dark:bg-blue-700">
+			<div class="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+				<h2 class="text-3xl lg:text-4xl font-bold text-white mb-4">
+					Ready to Transform Your Infrastructure?
+				</h2>
+				<p class="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+					Let's discuss how we can help you build scalable, reliable, and cost-effective cloud solutions.
+				</p>
+				<a href="/contact" class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-blue-600 bg-white hover:bg-gray-50 transition-colors">
+					Start Your Project
+				</a>
+			</div>
+		</section>
+	}
+}

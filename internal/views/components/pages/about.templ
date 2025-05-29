@@ -1,0 +1,58 @@
+package pages
+
+import (
+    "github.com/stratocraft/stratocraft.dev/internal/views/components/shared"
+)
+
+templ About() {
+	@shared.Layout("About", "Learn about StratoCraft's expertise in cloud architecture, DevOps practices, and helping businesses scale their infrastructure.") {
+		<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
+			<div class="max-w-4xl mx-auto">
+				<h1 class="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-8">
+					About StratoCraft
+				</h1>
+				<div class="prose prose-lg dark:prose-invert max-w-none">
+					<p class="text-xl text-gray-600 dark:text-gray-300 mb-8">
+						StratoCraft specializes in helping businesses modernize their infrastructure through expert cloud architecture and DevOps practices.
+					</p>
+					<h2>Expertise & Experience</h2>
+					<p>
+						With years of experience in cloud computing and DevOps, I help organizations transform their infrastructure and development processes. My expertise spans across multiple cloud platforms, with deep specialization in Azure and AWS.
+					</p>
+					<h3>Core Competencies</h3>
+					<ul>
+						<li><strong>Cloud Architecture:</strong> Design and implement scalable, secure cloud solutions</li>
+						<li><strong>DevOps & CI/CD:</strong> Streamline development workflows with automation</li>
+						<li><strong>Infrastructure as Code:</strong> Terraform, ARM templates, and CloudFormation</li>
+						<li><strong>Container Orchestration:</strong> Kubernetes, Docker, and container strategies</li>
+						<li><strong>Monitoring & Observability:</strong> Comprehensive system monitoring and alerting</li>
+						<li><strong>Security & Compliance:</strong> Implement security best practices and governance</li>
+					</ul>
+					<h3>Certifications</h3>
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-8">
+						<div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+							<h4 class="font-semibold text-blue-600 dark:text-blue-400">Microsoft Azure</h4>
+							<ul class="text-sm mt-2 space-y-1">
+								<li>Azure Solutions Architect Expert</li>
+								<li>Azure DevOps Engineer Expert</li>
+								<li>Azure Security Engineer Associate</li>
+							</ul>
+						</div>
+						<div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+							<h4 class="font-semibold text-orange-600 dark:text-orange-400">Amazon AWS</h4>
+							<ul class="text-sm mt-2 space-y-1">
+								<li>AWS Certified Solutions Architect</li>
+								<li>AWS Certified DevOps Engineer</li>
+								<li>AWS Certified Security Specialty</li>
+							</ul>
+						</div>
+					</div>
+					<h3>Philosophy</h3>
+					<p>
+						I believe in building robust, maintainable systems that grow with your business. Every solution is designed with scalability, security, and cost-effectiveness in mind. My approach emphasizes automation, monitoring, and continuous improvement to ensure your infrastructure supports your business goals.
+					</p>
+				</div>
+			</div>
+		</div>
+	}
+}

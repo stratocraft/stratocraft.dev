@@ -1,0 +1,97 @@
+package pages
+
+import (
+    "github.com/stratocraft/stratocraft.dev/internal/views/components/shared"
+)
+
+templ Services() {
+	@shared.Layout("Services", "Comprehensive cloud and DevOps services including architecture design, automation, monitoring, and cost optimization.") {
+		<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
+			<div class="max-w-4xl mx-auto">
+				<h1 class="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-8">
+					Services
+				</h1>
+				<p class="text-xl text-gray-600 dark:text-gray-300 mb-12">
+					Comprehensive cloud and DevOps solutions to accelerate your digital transformation.
+				</p>
+				<div class="space-y-12">
+					@ServiceDetail("cloud-architecture", "☁️", "Cloud Architecture", "Design and implement scalable, secure, and cost-effective cloud solutions tailored to your specific business requirements.", []string{
+						"Multi-cloud and hybrid cloud strategies",
+						"Microservices architecture design",
+						"Scalability and performance optimization",
+						"Disaster recovery and business continuity",
+						"Cloud migration planning and execution",
+					})
+					@ServiceDetail("devops-consulting", "🚀", "DevOps Consulting", "Streamline your development lifecycle with modern DevOps practices, automation, and continuous delivery.", []string{
+						"CI/CD pipeline design and implementation",
+						"GitOps workflow optimization",
+						"Container orchestration with Kubernetes",
+						"Configuration management and automation",
+						"Culture transformation and team enablement",
+					})
+					@ServiceDetail("infrastructure", "🏗️", "Infrastructure as Code", "Manage your infrastructure with version control, testing, and automated deployment for consistency and reliability.", []string{
+						"Terraform and ARM template development",
+						"Infrastructure testing and validation",
+						"Environment provisioning automation",
+						"State management and governance",
+						"Policy as code implementation",
+					})
+					@ServiceDetail("monitoring", "📊", "Monitoring & Observability", "Implement comprehensive monitoring solutions for proactive system management and performance optimization.", []string{
+						"Application performance monitoring",
+						"Infrastructure and resource monitoring",
+						"Log aggregation and analysis",
+						"Alerting and incident response",
+						"Custom dashboards and reporting",
+					})
+					@ServiceDetail("security", "🔒", "Security & Compliance", "Implement security best practices and ensure regulatory compliance across your cloud infrastructure.", []string{
+						"Security architecture and threat modeling",
+						"Identity and access management",
+						"Compliance automation (SOC2, HIPAA, PCI)",
+						"Vulnerability scanning and remediation",
+						"Security monitoring and incident response",
+					})
+					@ServiceDetail("optimization", "💰", "Cost Optimization", "Optimize your cloud spending without compromising performance through intelligent resource management.", []string{
+						"Cost analysis and reporting",
+						"Right-sizing and resource optimization",
+						"Reserved instance and savings plan strategies",
+						"Automated cost governance policies",
+						"FinOps implementation and training",
+					})
+				</div>
+				<div class="mt-16 text-center">
+					<h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+						Ready to Get Started?
+					</h2>
+					<p class="text-gray-600 dark:text-gray-300 mb-8">
+						Let's discuss how these services can help transform your infrastructure.
+					</p>
+					<a href="/contact" class="btn-primary">
+						Contact Me
+					</a>
+				</div>
+			</div>
+		</div>
+	}
+}
+
+templ ServiceDetail(id, emoji, title, description string, features []string) {
+	<section id={ id } class="card">
+		<div class="flex items-start space-x-4">
+			<div class="text-4xl">{ emoji }</div>
+			<div class="flex-1">
+				<h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-3">{ title }</h2>
+				<p class="text-gray-600 dark:text-gray-300 mb-6">{ description }</p>
+				<ul class="space-y-2">
+					for _, feature := range features {
+						<li class="flex items-start space-x-2">
+							<svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+								<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+							</svg>
+							<span class="text-gray-600 dark:text-gray-300">{ feature }</span>
+						</li>
+					}
+				</ul>
+			</div>
+		</div>
+	</section>
+}

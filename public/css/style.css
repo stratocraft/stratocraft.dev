@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+
+    body {
+        @apply z-0 overscroll-none min-h-screen bg-zinc-900 text-zinc-200;
+    }
+}
