@@ -67,7 +67,7 @@ func Layout(title, description string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("--><link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap\" rel=\"stylesheet\"><link href=\"https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@400;500;600;700&amp;display=swap\" rel=\"stylesheet\"><!--")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("--><link href=\"https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap\" rel=\"stylesheet\"><link href=\"https://fonts.googleapis.com/css2?family=JetBrains+Mono&amp;display=swap\" rel=\"stylesheet\"><!--")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
