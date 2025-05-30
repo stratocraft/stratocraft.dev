@@ -24,9 +24,9 @@ func main() {
 
 	// Routes
 	e.GET("/", app.Home)
-	e.GET("/about", app.About)
-	e.GET("/contact", app.Contact)
-	e.GET("/services", app.Services)
+	//e.GET("/about", app.About)
+	//e.GET("/contact", app.Contact)
+	//e.GET("/services", app.Services)
 
 	// Start the application
 	e.Logger.Fatal(e.Start(":8080"))
