@@ -32,11 +32,11 @@ func Nav() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</h1></div></div></div><div class=\"hidden md:flex items-center space-x-8\"><div class=\"flex items-baseline space-x-8\"><a href=\"#posts\" class=\"text-zinc-700 dark:text-zinc-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200 px-3 py-2 text-sm font-medium\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</h1></div></div></div><div class=\"hidden md:flex items-center space-x-8 uppercase\"><div class=\"flex items-baseline space-x-8\"><a href=\"#posts\" class=\"text-zinc-700 dark:text-zinc-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200 px-3 py-2 text-sm font-medium\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Var3 := `Services`
+		templ_7745c5c3_Var3 := `Posts`
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var3)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
