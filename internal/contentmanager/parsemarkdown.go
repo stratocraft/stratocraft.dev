@@ -6,6 +6,7 @@ import (
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/renderer/html"
+	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -38,19 +39,27 @@ func parseMarkdown(content string) (Post, error) {
 func parseFrontMatter(markdown []byte) (FrontMatter, string, error) {
 	parts := strings.SplitN(string(markdown), "---", 3)
 	if len(parts) < 3 {
+		log.Printf("No frontmatter found in markdown content (length: %d)", len(markdown))
 		return FrontMatter{}, string(markdown), nil
 	}
+
+	log.Printf("Parsing frontmatter: %s", strings.TrimSpace(parts[1]))
 
 	v := viper.New()
 	v.SetConfigType("yaml")
 	if err := v.ReadConfig(bytes.NewBufferString(parts[1])); err != nil {
+		log.Printf("Failed to parse YAML frontmatter: %v", err)
 		return FrontMatter{}, "", err
 	}
 
 	var fm FrontMatter
 	if err := v.Unmarshal(&fm); err != nil {
+		log.Printf("Failed to unmarshal frontmatter into struct: %v", err)
 		return FrontMatter{}, "", err
 	}
+
+	log.Printf("Successfully parsed frontmatter: Title='%s', Slug='%s', Published=%v", 
+		fm.Title, fm.Slug, fm.Published)
 
 	return fm, parts[2], nil
 }

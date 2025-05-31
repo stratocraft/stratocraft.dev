@@ -197,10 +197,13 @@ func (cm *ContentManager) RefreshContent() error {
 		"LICENSE.md": true,
 	}
 
+	log.Printf("Found %d files in repository", len(files))
+
 	// Process each markdown file
 	for _, file := range files {
 		// Skip if not a file or not a markdown file
 		if file.Type != "file" || !strings.HasSuffix(file.Name, ".md") {
+			log.Printf("Skipping non-markdown file: %s (type: %s)", file.Name, file.Type)
 			continue
 		}
 
@@ -210,20 +213,39 @@ func (cm *ContentManager) RefreshContent() error {
 			continue
 		}
 
+		log.Printf("Processing markdown file: %s", file.Name)
+
 		content, err := cm.fetchFileContent(file.Path)
 		if err != nil {
+			log.Printf("Failed to fetch %s: %v", file.Name, err)
 			return fmt.Errorf("failed to fecth %s: %w", file.Name, err)
 		}
 
 		post, err := parseMarkdown(content)
 		if err != nil {
+			log.Printf("Failed to parse %s: %v", file.Name, err)
 			return fmt.Errorf("failed to parse %s: %w", file.Name, err)
+		}
+
+		log.Printf("Parsed post: Title='%s', Slug='%s', Published=%v, Tags=%v", 
+			post.Title, post.Slug, post.Published, post.Tags)
+
+		// Check for empty slug
+		if post.Slug == "" {
+			log.Printf("WARNING: Post '%s' has empty slug, skipping", post.Title)
+			continue
+		}
+
+		// Only include published posts
+		if !post.Published {
+			log.Printf("Skipping unpublished post: %s", post.Title)
+			continue
 		}
 
 		newPosts[post.Slug] = post
 	}
 
-	log.Printf("found %d posts", len(newPosts))
+	log.Printf("Successfully processed %d posts", len(newPosts))
 
 	// Update posts atomically
 	cm.Lock()

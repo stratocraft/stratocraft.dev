@@ -176,7 +176,7 @@ func Layout(title, description string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</script></head><body class=\"bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 font-sans antialiased transition-colors duration-300\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</script></head><body class=\"bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 font-sans antialiased transition-colors duration-300 min-h-screen flex flex-col\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -193,7 +193,7 @@ func Layout(title, description string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("--><main>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("--><main class=\"flex-1\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

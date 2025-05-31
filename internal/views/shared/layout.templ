@@ -63,10 +63,10 @@ templ Layout(title, description string) {
                }
            </script>
 		</head>
-		<body class="bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 font-sans antialiased transition-colors duration-300">
+		<body class="bg-zinc-100 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 font-sans antialiased transition-colors duration-300 min-h-screen flex flex-col">
 			@Nav()
 			<!-- @Header() -->
-			<main>
+			<main class="flex-1">
 				{ children... }
 			</main>
 			@Footer()
