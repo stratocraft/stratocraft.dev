@@ -4,7 +4,13 @@ FROM node:18-alpine AS css-builder
 # Install Tailwind CSS
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --only=production
+
+# Use npm ci if lock file exists, otherwise use npm install
+RUN if [ -f package-lock.json ]; then \
+        npm ci --omit=dev; \
+    else \
+        npm install --omit=dev; \
+    fi
 
 # Copy CSS source and build CSS
 COPY public/css/style.css ./public/css/

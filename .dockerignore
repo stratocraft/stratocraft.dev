@@ -91,8 +91,8 @@ docker-compose*
 **/vendor/
 
 # Ignore npm related files that don't belong in production image
-package.json
-package-lock.json
+# package.json
+# package-lock.json
 tailwind.config.js
 
 # Ignore build outputs and temporary files and directories
