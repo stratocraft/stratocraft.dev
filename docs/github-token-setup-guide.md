@@ -81,7 +81,7 @@ The deployment scripts will automatically use the `GITHUB_TOKEN` environment var
 
 ```bash
 export GITHUB_TOKEN=ghp_your_token_here
-./scripts/deploy-azure.sh
+./scripts/deploy-azure-appservice.sh
 ```
 
 ## Token Security Best Practices

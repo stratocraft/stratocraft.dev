@@ -80,10 +80,11 @@ stratocraft.dev/
 │   ├── js/                                 # JavaScript files
 │   └── img/                                # Images and assets
 ├── scripts/
-│   ├── deploy-azure.sh                     # Standard Azure deployment
-│   ├── deploy-azure-minimal.sh             # Cost-optimized deployment
-│   ├── run-dev.sh                          # Development setup
-│   └── test-webhook.sh                     # Webhook testing
+│   ├── deploy-azure-appservice.sh              # Azure App Service deployment
+│   ├── run-dev.sh                              # Development setup
+│   ├── templ-watch.sh                          # Template hot reloading
+│   ├── tailwind-watch.sh                       # CSS hot reloading
+│   └── test-webhook.sh                         # Webhook testing
 ├── server/
 │   └── main.go                             # Application entry point
 ├── Dockerfile                              # Container configuration
@@ -122,7 +123,31 @@ stratocraft.dev/
    export GITHUB_WEBHOOK_SECRET=$(openssl rand -hex 32)  # Optional
    ```
 
-4. **Start development servers** (in separate terminals)
+4. **Start development environment**
+   
+   **Option A: All-in-One Script (Recommended)**
+   ```bash
+   ./scripts/run-dev.sh
+   ```
+   
+   This single command:
+   - ✅ Checks prerequisites and environment
+   - ✅ Runs initial builds
+   - ✅ Starts Tailwind CSS watch (background)
+   - ✅ Starts Templ template watch (background)  
+   - ✅ Starts Air Go hot reload (foreground)
+   - ✅ Provides proper cleanup on Ctrl+C
+   
+   **Additional commands:**
+   ```bash
+   ./scripts/run-dev.sh stop      # Stop all processes
+   ./scripts/run-dev.sh restart   # Restart all processes
+   ./scripts/run-dev.sh status    # Show process status
+   ```
+   
+   **Option B: Manual Setup (Advanced)**
+   
+   If you prefer to run each process manually in separate terminals:
    
    **Terminal 1 - Templ Watch:**
    ```bash
@@ -146,50 +171,26 @@ stratocraft.dev/
    - Templ templates (via templ-watch.sh)
    - CSS styles (via tailwind-watch.sh)
 
-### Alternative: All-in-One Development Script
-
-For convenience, you can also use the unified development script:
-
-```bash
-./scripts/run-dev.sh
-```
-
-This script handles the initial build but doesn't provide hot reloading. For active development, use the watch scripts above.
-
-### Manual Setup (No Hot Reloading)
-
-If you prefer to run each step manually without hot reloading:
-
-```bash
-# Generate templates
-templ generate
-
-# Build CSS
-npx tailwindcss -i ./public/css/style.css -o ./public/css/site.css --minify
-
-# Run the server
-cd server && go run main.go
-```
-
 ## 🌐 Deployment to Azure
 
-I provide two deployment options with different cost profiles:
+Deploy to Azure App Service for Containers for the best web application experience:
 
-### Standard Deployment (~$16/month)
+### App Service Deployment (~$13-15/month)
 ```bash
 export GITHUB_TOKEN=your_token
 export GITHUB_WEBHOOK_SECRET=your_webhook_secret
-./scripts/deploy-azure.sh
+./scripts/deploy-azure-appservice.sh
 ```
 
-### Cost-Optimized Deployment (~$13/month)
-```bash
-export GITHUB_TOKEN=your_token
-export GITHUB_WEBHOOK_SECRET=your_webhook_secret
-./scripts/deploy-azure-minimal.sh
-```
+**Why App Service:**
+- ✅ Always-on web application (no cold starts)
+- ✅ Built-in SSL certificates and load balancing
+- ✅ Easy custom domain configuration
+- ✅ Integrated CI/CD with auto-deployment
+- ✅ Better cost efficiency for 24/7 workloads
+- ✅ Built-in health monitoring and auto-restart
 
-📖 **Detailed Instructions**: See [Azure Deployment Guide](docs/manual-azure-deployment-guide.md) for complete setup instructions, cost comparison, and configuration options.
+📖 **Detailed Instructions**: See [Azure Deployment Guide](docs/azure-deployment-guide.md) for complete setup instructions and configuration options.
 
 ## 🔄 GitHub Webhook Setup
 
@@ -320,7 +321,7 @@ go test ./...
 ## 📚 Documentation
 
 - **[GitHub Token Setup Guide](docs/github-token-setup-guide.md)**: Step-by-step guide to create and configure GitHub Personal Access Tokens
-- **[Azure Deployment Guide](docs/manual-azure-deployment-guide.md)**: Complete Azure deployment instructions with cost optimization
+- **[Azure Deployment Guide](docs/azure-deployment-guide.md)**: Complete Azure deployment instructions with cost optimization
 - **[Webhook Setup Guide](docs/webhook-setup-guide.md)**: GitHub webhook configuration for automatic updates
 
 ## 🤝 Contributing

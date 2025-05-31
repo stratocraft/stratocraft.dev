@@ -39,7 +39,9 @@ not be checked into source control and should be added to your `.gitignore`.
 2. Navigate to **Settings** → **Webhooks**
 3. Click **Add webhook**
 4. Fill in the webhook details:
-   - **Payload URL**: `https://yourdomain.com/webhook/github`
+   - **Payload URL**: 
+     - For App Service: `https://your-app-name.azurewebsites.net/webhook/github`
+     - For custom domain: `https://yourdomain.com/webhook/github`
    - **Content type**: `application/json`
    - **Secret**: The secret you generated in Step 1
    - **Events**: Select "Just the push event"
@@ -47,10 +49,9 @@ not be checked into source control and should be added to your `.gitignore`.
 
 5. Click **Add webhook**  
 
-💡 If your site is not deployed to production yet with a DNS name that resolves to what you provided for the *Payload URL*
-you will get a message `Last delivery was not successful. Failed to connect to host.`. This is expected behavior until
-your deployment is completed and the URL resolves. 
+💡 **App Service Note**: Your webhook URL will be `https://stratocraft-webapp.azurewebsites.net/webhook/github` if you used the default app name, or replace `stratocraft-webapp` with your chosen app name.
 
+💡 If your site is not deployed yet, you will get a message `Last delivery was not successful. Failed to connect to host.` This is expected behavior until your deployment is completed and the URL resolves.
 
 ## Step 4: Test the Webhook
 
