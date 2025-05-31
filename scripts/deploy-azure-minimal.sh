@@ -7,7 +7,7 @@ set -e
 
 # Configuration optimized for cost
 RESOURCE_GROUP="${AZURE_RESOURCE_GROUP:-stratocraft-rg}"
-CONTAINER_REGISTRY="${AZURE_CONTAINER_REGISTRY:-stratocraft-acr}"
+CONTAINER_REGISTRY="${AZURE_CONTAINER_REGISTRY:-stratocraftacr}"
 IMAGE_NAME="stratocraft-dev"
 IMAGE_TAG="${IMAGE_TAG:-minimal}"
 CONTAINER_NAME="stratocraft-app"

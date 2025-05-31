@@ -27,7 +27,7 @@ export GITHUB_WEBHOOK_SECRET=your_webhook_secret_here
 
 # Optional: export these variables to override the defaults shown below
 export AZURE_RESOURCE_GROUP=stratocraft-rg
-export AZURE_CONTAINER_REGISTRY=stratocraft-acr
+export AZURE_CONTAINER_REGISTRY=stratocraftacr
 export DNS_NAME_LABEL=stratocraft-dev
 export AZURE_LOCATION=southcentralus
 
@@ -48,7 +48,7 @@ export AZURE_LOCATION=southcentralus
 ### Optional
 - `GITHUB_WEBHOOK_SECRET`: Secret for webhook signature verification, required for live post updates
 - `AZURE_RESOURCE_GROUP`: Resource group name (default: `stratocraft-rg`)
-- `AZURE_CONTAINER_REGISTRY`: Container registry name (default: `stratocraf-acr`)
+- `AZURE_CONTAINER_REGISTRY`: Container registry name (default: `stratocrafacr`)
 - `DNS_NAME_LABEL`: DNS label for public IP (default: `stratocraft-dev`)
 - `AZURE_LOCATION`: Azure region (default: `southcentralus`)
 
@@ -90,7 +90,7 @@ export GITHUB_WEBHOOK_SECRET=$(openssl rand -hex 32)
 
 # Optional: override the Azure deployment environment variables with your preferences, example:
 export AZURE_RESOURCE_GROUP=my-rg-name
-export AZURE_CONTAINER_REGISTRY=my-acr-name
+export AZURE_CONTAINER_REGISTRY=myacrname
 export DNS_NAME_LABEL=my-blog-name
 ```
 
