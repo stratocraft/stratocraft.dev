@@ -20,15 +20,17 @@ templ Nav() {
 						</div>
 					</div>
 				</div>
+                <!-- Search Bar -->
+                <div class="w-64">
+                    @components.SearchBar()
+                </div>
 				<div class="hidden md:flex items-center space-x-8 uppercase">
 					<div class="flex items-baseline space-x-8">
 						<a href="/posts" class="text-zinc-700 dark:text-zinc-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200 px-3 py-2 text-sm font-medium">Posts</a>
+						<!--
 						<a href="#about" class="text-zinc-700 dark:text-zinc-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors duration-200 px-3 py-2 text-sm font-medium">About</a>
 						<a href="#contact" class="bg-indigo-600 text-zinc-50 px-6 py-2 rounded-lg hover:bg-indigo-500 transition-colors duration-200 text-sm font-medium">Contact</a>
-					</div>
-					<!-- Search Bar -->
-					<div class="w-64">
-						@components.SearchBar()
+						-->
 					</div>
 					<!-- Theme Toggle -->
 					<button id="theme-toggle" class="p-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors duration-200" aria-label="Toggle theme">

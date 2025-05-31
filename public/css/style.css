@@ -1,8 +1,21 @@
 @import "tailwindcss";
 
+@variant dark (.dark &);
+
 @source "../internal/views/**/*.{templ,go}";
 @source "../internal/**/*_templ.go";
 @source "../internal/**/*.go";
+
+/* Footer social icons - ensure horizontal layout */
+/* footer div:has(a[href*="github.com"]),
+footer div:has(a[href*="linkedin.com"]),
+footer div:has(a[href*="youtube.com"]),
+footer div:has(a[href*="x.com"]) {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 4px !important;
+} */
 
 /* Custom prose styles for blog content */
 .post-content {

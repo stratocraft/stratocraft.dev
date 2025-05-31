@@ -27,9 +27,8 @@ templ Layout(title, description string) {
 			<!-- Preload critical resources -->
 			<link rel="preload" href="/public/css/site.css" as="style"/>
 			<link rel="preload" href="/public/css/tokyo-night-dark.css" as="style"/>
-			<link rel="preload" href="/public/js/theme.js" as="script"/>
-			<link rel="preload" href="/public/font/jetbrains-mono-v18-latin-regular.woff2" as="font" crossorigin/>
-			<link rel="preload" href="/public/font/Inter-Regular.woff2" as="font" />
+			<!--<link rel="preload" href="/public/js/theme.js" as="script"/>-->
+			<link rel="preload" href="/public/font/Inter-Regular.woff2" as="font" type="font/woff2" crossorigin/>
 
 			<!-- Stylesheets -->
 			<link href="/public/css/site.css" rel="stylesheet"/>
