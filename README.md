@@ -4,6 +4,15 @@ A modern, high-performance blog built with Go, Templ templates, and Tailwind CSS
 
 You can give the live site a spin at <a href="https://stratocraft.dev" target="_blank">stratocraft.dev</a>
 
+## ⚡ Performance First
+
+Designed and optimized for exceptional web performance:
+
+🏆 **100 Lighthouse Score** for Performance when deployed to Azure App Service.
+
+![Lighthouse Score](docs/azure-app-services-lighthouse-score.png)
+
+
 ## 🚀 Features
 
 - **Modern Go Stack**: Go 1.24 + Echo v4 + Templ templates + Tailwind CSS v4
@@ -27,8 +36,8 @@ You can give the live site a spin at <a href="https://stratocraft.dev" target="_
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   Content API   │    │   Azure          │    │   Real-time     │
-│   (GitHub API)  │    │   Container      │    │   Search        │
-│                 │    │   Instances      │    │   (HTMX)        │
+│   (GitHub API)  │    │   App Service    │    │   Search        │
+│                 │    │   (Containers)   │    │   (HTMX)        │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
@@ -48,7 +57,7 @@ You can give the live site a spin at <a href="https://stratocraft.dev" target="_
 
 **Infrastructure:**
 - Docker for containerization
-- Azure Container Instances for hosting
+- Azure App Service for hosting
 - Azure Container Registry for image storage
 - GitHub webhooks for automatic updates
 
@@ -57,8 +66,9 @@ You can give the live site a spin at <a href="https://stratocraft.dev" target="_
 ```
 stratocraft.dev/
 ├── docs/
-│   ├── manual-azure-deployment-guide.md    # Azure deployment guide
-│   └── webhook-setup-guide.md              # GitHub webhook setup
+│   ├── azure-deployment-guide.md            # Azure App Service deployment guide
+│   ├── webhook-setup-guide.md               # GitHub webhook setup
+│   └── github-token-setup-guide.md          # GitHub token configuration
 ├── internal/
 │   ├── application/                        # HTTP handlers
 │   │   ├── home.go                         # Home page handler
@@ -80,11 +90,11 @@ stratocraft.dev/
 │   ├── js/                                 # JavaScript files
 │   └── img/                                # Images and assets
 ├── scripts/
-│   ├── deploy-azure-appservice.sh              # Azure App Service deployment
-│   ├── run-dev.sh                              # Development setup
-│   ├── templ-watch.sh                          # Template hot reloading
-│   ├── tailwind-watch.sh                       # CSS hot reloading
-│   └── test-webhook.sh                         # Webhook testing
+│   ├── deploy-azure-appservice.sh          # Azure App Service deployment
+│   ├── run-dev.sh                          # Development orchestration
+│   ├── templ-watch.sh                      # Template hot reloading
+│   ├── tailwind-watch.sh                   # CSS hot reloading
+│   └── test-webhook.sh                     # Webhook testing
 ├── server/
 │   └── main.go                             # Application entry point
 ├── Dockerfile                              # Container configuration

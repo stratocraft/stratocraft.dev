@@ -69,7 +69,7 @@ docker push stratocraftacr.azurecr.io/stratocraft-dev:latest
 az appservice plan create \
     --name stratocraft-plan \
     --resource-group stratocraft-rg \
-    --location eastus \
+    --location centralus \
     --sku B1 \
     --is-linux
 ```
@@ -82,16 +82,16 @@ az webapp create \
     --resource-group stratocraft-rg \
     --plan stratocraft-plan \
     --name stratocraft-webapp \
-    --deployment-container-image-name stratocraftacr.azurecr.io/stratocraft-dev:latest
+    --container-image-name stratocraftacr.azurecr.io/stratocraft-dev:latest
 
 # Configure container settings
 az webapp config container set \
     --name stratocraft-webapp \
     --resource-group stratocraft-rg \
-    --docker-custom-image-name stratocraftacr.azurecr.io/stratocraft-dev:latest \
-    --docker-registry-server-url https://stratocraftacr.azurecr.io \
-    --docker-registry-server-user stratocraftacr \
-    --docker-registry-server-password $(az acr credential show --name stratocraftacr --query passwords[0].value --output tsv)
+    --container-image-name stratocraftacr.azurecr.io/stratocraft-dev:latest \
+    --container-registry-url https://stratocraftacr.azurecr.io \
+    --container-registry-user stratocraftacr \
+    --container-registry-password $(az acr credential show --name stratocraftacr --query passwords[0].value --output tsv)
 
 # Set environment variables
 az webapp config appsettings set \
@@ -155,7 +155,7 @@ az webapp deployment container config \
 # Create Application Insights
 az monitor app-insights component create \
     --app stratocraft-insights \
-    --location eastus \
+    --location centralus \
     --resource-group stratocraft-rg
 
 # Get instrumentation key
@@ -202,7 +202,7 @@ az webapp restart --resource-group stratocraft-rg --name stratocraft-webapp
 az webapp config container set \
     --name stratocraft-webapp \
     --resource-group stratocraft-rg \
-    --docker-custom-image-name stratocraftacr.azurecr.io/stratocraft-dev:latest
+    --container-image-name stratocraftacr.azurecr.io/stratocraft-dev:latest
 ```
 
 ## Troubleshooting
@@ -265,4 +265,4 @@ After deployment:
 4. **Configure webhooks** for automatic deployments
 5. **Set up backup and disaster recovery**
 
-For webhook configuration, see the [Webhook Setup Guide](webhook-setup-guide.md). 
+For webhook configuration, see the [Webhook Setup Guide](webhook-setup-guide.md).

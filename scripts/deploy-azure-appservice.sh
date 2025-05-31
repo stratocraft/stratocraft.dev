@@ -12,7 +12,7 @@ APP_NAME="${AZURE_APP_NAME:-stratocraft-webapp}"
 APP_SERVICE_PLAN="${AZURE_APP_SERVICE_PLAN:-stratocraft-plan}"
 IMAGE_NAME="stratocraft-dev"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
-LOCATION="${AZURE_LOCATION:-eastus}"
+LOCATION="${AZURE_LOCATION:-centralus}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -52,6 +52,44 @@ fi
 
 echo -e "${GREEN}✓ Environment check passed${NC}"
 
+# Register required Azure resource providers
+echo -e "${GREEN}🔧 Registering required Azure resource providers...${NC}"
+
+# Register Microsoft.Web for App Service
+echo -e "${BLUE}Registering Microsoft.Web (App Service)...${NC}"
+if az provider register --namespace Microsoft.Web --wait &> /dev/null; then
+    echo -e "${GREEN}✓ Microsoft.Web registered${NC}"
+else
+    echo -e "${YELLOW}⚠️  Microsoft.Web registration may be in progress${NC}"
+fi
+
+# Register Microsoft.ContainerRegistry for ACR
+echo -e "${BLUE}Registering Microsoft.ContainerRegistry (Container Registry)...${NC}"
+if az provider register --namespace Microsoft.ContainerRegistry --wait &> /dev/null; then
+    echo -e "${GREEN}✓ Microsoft.ContainerRegistry registered${NC}"
+else
+    echo -e "${YELLOW}⚠️  Microsoft.ContainerRegistry registration may be in progress${NC}"
+fi
+
+# Check registration status
+echo -e "${BLUE}Checking resource provider registration status...${NC}"
+WEB_STATUS=$(az provider show --namespace Microsoft.Web --query registrationState --output tsv 2>/dev/null)
+ACR_STATUS=$(az provider show --namespace Microsoft.ContainerRegistry --query registrationState --output tsv 2>/dev/null)
+
+echo -e "${BLUE}- Microsoft.Web: $WEB_STATUS${NC}"
+echo -e "${BLUE}- Microsoft.ContainerRegistry: $ACR_STATUS${NC}"
+
+if [ "$WEB_STATUS" != "Registered" ]; then
+    echo -e "${YELLOW}⚠️  Microsoft.Web is not fully registered yet. This may take a few minutes.${NC}"
+    echo -e "${YELLOW}If you encounter errors during App Service creation, you can:${NC}"
+    echo -e "${YELLOW}1. Wait 5-10 minutes and run the script again${NC}"
+    echo -e "${YELLOW}2. Manually register: az provider register --namespace Microsoft.Web${NC}"
+    echo -e "${YELLOW}3. Check status: az provider show --namespace Microsoft.Web --query registrationState${NC}"
+    echo ""
+fi
+
+echo -e "${GREEN}✓ Resource provider check completed${NC}"
+
 echo -e "${GREEN}📦 Building optimized Docker image for App Service...${NC}"
 # Use buildx to ensure AMD64 architecture
 docker buildx create --use --name appservice-builder &> /dev/null || true
@@ -71,16 +109,68 @@ fi
 echo -e "${GREEN}📝 Creating container registry (if needed)...${NC}"
 if ! az acr show --name "$CONTAINER_REGISTRY" --resource-group "$RESOURCE_GROUP" &> /dev/null; then
     echo -e "${BLUE}Creating new container registry: $CONTAINER_REGISTRY${NC}"
+    echo -e "${BLUE}Location: $LOCATION${NC}"
+    echo -e "${BLUE}Resource Group: $RESOURCE_GROUP${NC}"
+    
+    # Check if the registry name is available globally
+    echo -e "${BLUE}Checking registry name availability...${NC}"
+    NAME_CHECK=$(az acr check-name --name "$CONTAINER_REGISTRY" --query nameAvailable --output tsv 2>/dev/null)
+    if [ "$NAME_CHECK" = "false" ]; then
+        echo -e "${RED}❌ Registry name '$CONTAINER_REGISTRY' is not available globally${NC}"
+        echo -e "${YELLOW}Container Registry names must be globally unique across all of Azure.${NC}"
+        echo -e "${YELLOW}Please set a custom registry name:${NC}"
+        echo -e "${YELLOW}export AZURE_CONTAINER_REGISTRY=your-unique-name${NC}"
+        echo -e "${YELLOW}Or use a custom suffix:${NC}"
+        echo -e "${YELLOW}export AZURE_REGISTRY_SUFFIX=your-suffix${NC}"
+        exit 1
+    fi
+    echo -e "${GREEN}✓ Registry name is available${NC}"
+    
+    # Create the ACR with detailed output for debugging
+    echo -e "${BLUE}Running: az acr create --resource-group $RESOURCE_GROUP --name $CONTAINER_REGISTRY --sku Basic --location $LOCATION${NC}"
     if ! az acr create \
         --resource-group "$RESOURCE_GROUP" \
         --name "$CONTAINER_REGISTRY" \
         --sku Basic \
-        --location "$LOCATION" \
-        --output none; then
+        --location "$LOCATION"; then
         echo -e "${RED}❌ Failed to create container registry${NC}"
+        echo -e "${YELLOW}Debugging information:${NC}"
+        echo -e "${YELLOW}- Resource Group: $RESOURCE_GROUP${NC}"
+        echo -e "${YELLOW}- Registry Name: $CONTAINER_REGISTRY${NC}"
+        echo -e "${YELLOW}- Location: $LOCATION${NC}"
+        echo -e "${YELLOW}- SKU: Basic${NC}"
+        echo ""
+        echo -e "${YELLOW}Please check:${NC}"
+        echo -e "${YELLOW}1. Registry name '$CONTAINER_REGISTRY' is globally unique${NC}"
+        echo -e "${YELLOW}2. You have permissions to create ACR in this subscription${NC}"
+        echo -e "${YELLOW}3. The location '$LOCATION' supports Container Registry${NC}"
         exit 1
     fi
-    echo -e "${GREEN}✓ Container registry created${NC}"
+    
+    # Wait a moment for the resource to be fully provisioned
+    echo -e "${BLUE}Waiting for container registry to be fully provisioned...${NC}"
+    sleep 10
+    
+    # Verify the registry was actually created
+    retry_count=0
+    while [ $retry_count -lt 6 ]; do
+        if az acr show --name "$CONTAINER_REGISTRY" --resource-group "$RESOURCE_GROUP" &> /dev/null; then
+            echo -e "${GREEN}✓ Container registry verified${NC}"
+            break
+        fi
+        echo -e "${YELLOW}Registry not yet available, waiting... (attempt $((retry_count + 1))/6)${NC}"
+        sleep 10
+        retry_count=$((retry_count + 1))
+    done
+    
+    # Final verification
+    if ! az acr show --name "$CONTAINER_REGISTRY" --resource-group "$RESOURCE_GROUP" &> /dev/null; then
+        echo -e "${RED}❌ Container registry creation verification failed${NC}"
+        echo -e "${RED}The registry was created but is not accessible. This might be a temporary issue.${NC}"
+        exit 1
+    fi
+    
+    echo -e "${GREEN}✓ Container registry created and verified${NC}"
 else
     echo -e "${BLUE}Container registry $CONTAINER_REGISTRY already exists${NC}"
 fi
@@ -141,7 +231,7 @@ if ! az webapp show --name "$APP_NAME" --resource-group "$RESOURCE_GROUP" &> /de
         --resource-group "$RESOURCE_GROUP" \
         --plan "$APP_SERVICE_PLAN" \
         --name "$APP_NAME" \
-        --deployment-container-image-name "$LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG" \
+        --container-image-name "$LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG" \
         --output none; then
         echo -e "${RED}❌ Failed to create Web App${NC}"
         exit 1
@@ -157,10 +247,10 @@ echo -e "${BLUE}Image: $LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG${NC}"
 if ! az webapp config container set \
     --name "$APP_NAME" \
     --resource-group "$RESOURCE_GROUP" \
-    --docker-custom-image-name "$LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG" \
-    --docker-registry-server-url "https://$LOGIN_SERVER" \
-    --docker-registry-server-user "$CONTAINER_REGISTRY" \
-    --docker-registry-server-password "$(az acr credential show --name $CONTAINER_REGISTRY --query passwords[0].value --output tsv)" \
+    --container-image-name "$LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG" \
+    --container-registry-url "https://$LOGIN_SERVER" \
+    --container-registry-user "$CONTAINER_REGISTRY" \
+    --container-registry-password "$(az acr credential show --name $CONTAINER_REGISTRY --query passwords[0].value --output tsv)" \
     --output none; then
     echo -e "${RED}❌ Failed to configure container settings${NC}"
     exit 1
