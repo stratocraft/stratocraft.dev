@@ -11,6 +11,7 @@ func main() {
 
 	// Configure middleware
 	e.Use(middleware.Recover())
+	e.Use(middleware.CORS())
 	e.Use(middleware.GzipWithConfig(middleware.GzipConfig{
 		Level: 5,
 	}))
@@ -24,6 +25,8 @@ func main() {
 
 	// Routes
 	e.GET("/", app.Home)
+	e.GET("/search", app.Search)
+	e.GET("/posts/:slug", app.PostDetail)
 	//e.GET("/about", app.About)
 	//e.GET("/contact", app.Contact)
 	//e.GET("/services", app.Services)

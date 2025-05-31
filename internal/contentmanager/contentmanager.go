@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -13,20 +14,65 @@ import (
 
 type ContentManager struct {
 	sync.RWMutex
-	posts     map[string]Post
-	client    *http.Client
-	repoOwner string
-	repoName  string
+	posts       map[string]Post
+	client      *http.Client
+	repoOwner   string
+	repoName    string
+	githubToken string
 }
 
 func New(repoOwner, repoName string) *ContentManager {
+	githubToken := os.Getenv("GITHUB_TOKEN")
+	if githubToken == "" {
+		log.Println("Warning: GITHUB_TOKEN environment variable not set. API requests will be rate limited.")
+	}
+
 	return &ContentManager{
-		posts:     make(map[string]Post),
-		client:    &http.Client{},
-		repoOwner: repoOwner,
-		repoName:  repoName,
+		posts:       make(map[string]Post),
+		client:      &http.Client{},
+		repoOwner:   repoOwner,
+		repoName:    repoName,
+		githubToken: githubToken,
 	}
 }
+
+//func (cm *ContentManager) listRepoContent(path string) ([]githubContent, error) {
+//	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/contents/%s", cm.repoOwner, cm.repoName, path)
+//
+//	log.Printf("fetching content from: %s", url)
+//
+//	req, err := http.NewRequest("GET", url, nil)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	//req.Header.Set("Authorization", "token"+cm.githubToken)
+//	req.Header.Set("Accept", "application/vnd.github.v3+json")
+//
+//	resp, err := cm.client.Do(req)
+//	if err != nil {
+//		return nil, err
+//	}
+//	defer resp.Body.Close()
+//
+//	// Handle single file response
+//	var singleContent githubContent
+//	if err = json.NewDecoder(resp.Body).Decode(&singleContent); err != nil {
+//		return []githubContent{singleContent}, nil
+//	}
+//
+//	// Reset response body for array parsing
+//	resp.Body.Close()
+//	resp, _ = cm.client.Do(req)
+//	defer resp.Body.Close()
+//
+//	var contents []githubContent
+//	if err = json.NewDecoder(resp.Body).Decode(&contents); err != nil {
+//		return nil, err
+//	}
+//
+//	return contents, nil
+//}
 
 func (cm *ContentManager) listRepoContent(path string) ([]githubContent, error) {
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/contents/%s", cm.repoOwner, cm.repoName, path)
@@ -38,8 +84,12 @@ func (cm *ContentManager) listRepoContent(path string) ([]githubContent, error) 
 		return nil, err
 	}
 
-	//req.Header.Set("Authorization", "token"+cm.githubToken)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
+	
+	// Add authentication if token is available
+	if cm.githubToken != "" {
+		req.Header.Set("Authorization", "token "+cm.githubToken)
+	}
 
 	resp, err := cm.client.Do(req)
 	if err != nil {
@@ -47,20 +97,26 @@ func (cm *ContentManager) listRepoContent(path string) ([]githubContent, error) 
 	}
 	defer resp.Body.Close()
 
-	// Handle single file response
-	var singleContent githubContent
-	if err = json.NewDecoder(resp.Body).Decode(&singleContent); err != nil {
-		return []githubContent{singleContent}, nil
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
 	}
 
-	// Reset response body for array parsing
-	resp.Body.Close()
-	resp, _ = cm.client.Do(req)
-	defer resp.Body.Close()
-
+	// Try to decode as array first (directory listing)
 	var contents []githubContent
-	if err = json.NewDecoder(resp.Body).Decode(&contents); err != nil {
-		return nil, err
+	if err := json.NewDecoder(resp.Body).Decode(&contents); err != nil {
+		// If that fails, it might be a single file
+		resp.Body.Close()
+		resp, err = cm.client.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+
+		var singleContent githubContent
+		if err := json.NewDecoder(resp.Body).Decode(&singleContent); err != nil {
+			return nil, fmt.Errorf("failed to decode response as array or single file: %v", err)
+		}
+		return []githubContent{singleContent}, nil
 	}
 
 	return contents, nil
@@ -74,8 +130,12 @@ func (cm *ContentManager) fetchFileContent(path string) (string, error) {
 		return "", err
 	}
 
-	//req.Header.Set("Authorization", "token "+cm.githubToken)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
+	
+	// Add authentication if token is available
+	if cm.githubToken != "" {
+		req.Header.Set("Authorization", "token "+cm.githubToken)
+	}
 
 	resp, err := cm.client.Do(req)
 	if err != nil {
@@ -130,9 +190,23 @@ func (cm *ContentManager) RefreshContent() error {
 
 	newPosts := make(map[string]Post)
 
+	// Files to ignore
+	ignoredFiles := map[string]bool{
+		".gitignore": true,
+		"README.md":  true,
+		"LICENSE.md": true,
+	}
+
 	// Process each markdown file
 	for _, file := range files {
+		// Skip if not a file or not a markdown file
 		if file.Type != "file" || !strings.HasSuffix(file.Name, ".md") {
+			continue
+		}
+
+		// Skip ignored files
+		if ignoredFiles[file.Name] {
+			log.Printf("Skipped ignored file: %s", file.Name)
 			continue
 		}
 
@@ -149,7 +223,7 @@ func (cm *ContentManager) RefreshContent() error {
 		newPosts[post.Slug] = post
 	}
 
-	log.Printf("found %d posts, files %v", len(newPosts), files)
+	log.Printf("found %d posts", len(newPosts))
 
 	// Update posts atomically
 	cm.Lock()
@@ -259,4 +333,12 @@ func (cm *ContentManager) Search(query string) []Post {
 	})
 
 	return results
+}
+
+func (cm *ContentManager) GetBySlug(slug string) (Post, bool) {
+	cm.RLock()
+	defer cm.RUnlock()
+
+	post, exists := cm.posts[slug]
+	return post, exists
 }

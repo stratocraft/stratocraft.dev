@@ -11,7 +11,7 @@ import "io"
 import "bytes"
 
 import (
-	"github.com/stratocraft/stratocraft.dev/internal/views/components/buttons"
+	"github.com/stratocraft/stratocraft.dev/internal/views/buttons"
 )
 
 func Socials() templ.Component {
