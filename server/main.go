@@ -29,6 +29,10 @@ func main() {
 	e.GET("/search", app.Search)
 	e.GET("/posts/:slug", app.PostDetail)
 	e.GET("/about", app.About)
+	
+	// Webhook for automatic content updates
+	e.POST("/webhook/github", app.WebhookHandler)
+	
 	//e.GET("/contact", app.Contact)
 	//e.GET("/services", app.Services)
 

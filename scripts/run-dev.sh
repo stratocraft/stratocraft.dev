@@ -14,6 +14,17 @@ if [ -z "$GITHUB_TOKEN" ]; then
     echo ""
 fi
 
+# Check if GITHUB_WEBHOOK_SECRET is set
+if [ -z "$GITHUB_WEBHOOK_SECRET" ]; then
+    echo "Notice: GITHUB_WEBHOOK_SECRET environment variable is not set."
+    echo "This is only needed if you plan to use GitHub webhooks for auto-refresh."
+    echo "To set up webhooks:"
+    echo "1. Generate a secret: openssl rand -hex 32"
+    echo "2. Export it: export GITHUB_WEBHOOK_SECRET=your_secret_here"
+    echo "3. Configure it in your GitHub repo webhook settings"
+    echo ""
+fi
+
 # Generate templates
 echo "Generating templates..."
 templ generate
@@ -24,4 +35,5 @@ npx tailwindcss -i ./public/css/style.css -o ./public/css/site.css --minify
 
 # Run the server
 echo "Starting server on http://localhost:8080"
+echo "Webhook endpoint available at: http://localhost:8080/webhook/github"
 cd server && go run main.go 
