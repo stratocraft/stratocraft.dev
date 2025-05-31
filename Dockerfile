@@ -39,9 +39,10 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
 # ===== Final Stage =====
 FROM alpine:3.19
 
-# Install ca-certificates for HTTPS and curl for health checks
-RUN apk --no-cache add ca-certificates tzdata curl && \
-    update-ca-certificates
+# Install only essential packages in single layer
+RUN apk --no-cache add --update ca-certificates tzdata curl && \
+    update-ca-certificates && \
+    rm -rf /var/cache/apk/*
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S appgroup && \
@@ -53,12 +54,16 @@ WORKDIR /app
 # Copy the binary from builder stage
 COPY --from=go-builder /app/stratocraft-server .
 
-# Copy static assets with proper structure
+# Copy only essential static assets
 COPY --from=css-builder /app/public/css/site.css ./public/css/
-COPY --from=go-builder /app/public/ ./public/
+COPY --from=go-builder /app/public/css/tokyo-night-dark.css ./public/css/
+COPY --from=go-builder /app/public/js/ ./public/js/
+COPY --from=go-builder /app/public/img/favicon.ico ./public/img/
+COPY --from=go-builder /app/public/txt/robots.txt ./public/txt/
 
-# Set proper permissions
-RUN chown -R appuser:appgroup /app
+# Set proper permissions in single layer
+RUN chown -R appuser:appgroup /app && \
+    chmod +x ./stratocraft-server
 
 # Switch to non-root user
 USER appuser
@@ -66,8 +71,8 @@ USER appuser
 # Expose port 8080
 EXPOSE 8080
 
-# Add health check for Azure Container Instances
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+# Optimized health check (less frequent = lower cost)
+HEALTHCHECK --interval=60s --timeout=10s --start-period=60s --retries=2 \
     CMD curl -f http://localhost:8080/ || exit 1
 
 # Environment variables for production

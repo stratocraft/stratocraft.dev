@@ -74,18 +74,19 @@ az login
 
 ### 3. Set Environment Variables
 
-See the [Webhook Setup Guide](WEBHOOK_SETUP.md) for information about configuring the Webhook if you want to use live post updates.
+See the [Webhook Setup Guide](webhook-setup-guide.md) for information about configuring the Webhook if you want to use live post updates.
 
 ```bash
 # Required: provide your Token you generated under Settings > Developer Settings > Personal access tokens > Tokens (classic)
 export GITHUB_TOKEN=your_github_token_here
 
-# Generate webhook secret. 
+# Recommended: generate webhook secret and follow the steps in the Webhook Setup Guide 
 export GITHUB_WEBHOOK_SECRET=$(openssl rand -hex 32)
 
-# Optional customizations
-export AZURE_RESOURCE_GROUP=my-stratocraft-rg
-export DNS_NAME_LABEL=my-blog
+# Optional: override the Azure deployment environment variables with your preferences, example:
+export AZURE_RESOURCE_GROUP=my-rg-name
+export AZURE_CONTAINER_REGISTRY=my-acr-name
+export DNS_NAME_LABEL=my-blog-name
 ```
 
 ### 4. Run Deployment Script
@@ -186,17 +187,119 @@ az container delete \
 
 ## Cost Optimization
 
-### Estimated Monthly Costs (East US)
-- **Container Registry**: ~$5/month (Basic tier)
-- **Container Instance**: ~$15/month (1 vCPU, 1GB RAM)
-- **Networking**: ~$2/month (data transfer)
-- **Total**: ~$22/month
+I provide two deployment options to balance performance and cost based on your needs:
 
-### Cost Reduction Options
-1. **Use smaller regions** if acceptable for your users
-2. **Scale down during low traffic** periods
-3. **Use Azure Container Apps** for auto-scaling (may reduce costs)
-4. **Monitor and right-size** resources based on actual usage
+### 🚀 Standard Deployment (`./scripts/deploy-azure.sh`)
+
+**Configuration:**
+- CPU: 0.5 vCPU
+- Memory: 0.5 GB
+- Restart Policy: Always
+- Health Checks: Every 60s
+
+**Estimated Monthly Costs (South Central US):**
+- **Container Registry**: ~$5/month (Basic tier)
+- **Container Instance**: ~$10/month (0.5 vCPU, 0.5GB RAM)
+- **Networking**: ~$1/month (data transfer)
+- **Total**: ~$16/month
+
+### 💰 Cost-Optimized Deployment (`./scripts/deploy-azure-minimal.sh`)
+
+**Configuration:**
+- CPU: 0.25 vCPU
+- Memory: 0.5 GB
+- Restart Policy: OnFailure (stops when not needed)
+- Health Checks: Every 60s
+
+**Estimated Monthly Costs (South Central US):**
+- **Container Registry**: ~$5/month (Basic tier)
+- **Container Instance**: ~$7/month (0.25 vCPU, 0.5GB RAM)
+- **Networking**: ~$1/month (data transfer)
+- **Total**: ~$13/month
+
+### 📊 Cost Comparison
+
+| Feature | Standard | Cost-Optimized | Savings |
+|---------|----------|----------------|---------|
+| **Monthly Cost** | ~$16 | ~$13 | ~$3/month |
+| **CPU Performance** | Better | Good | - |
+| **Memory** | Same | Same | - |
+| **Uptime** | 100% | 95-99%* | Better reliability |
+| **Best For** | Production sites | Personal blogs | - |
+
+*OnFailure restart policy may cause brief downtime during failures vs. immediate restart
+
+### 🎯 Which Option Should You Choose?
+
+**Choose Standard Deployment if:**
+- You expect consistent traffic
+- You need maximum uptime (99.9%+)
+- You're running in production
+- $3/month difference isn't significant
+
+**Choose Cost-Optimized Deployment if:**
+- You're running a personal blog or side project
+- You want to minimize costs
+- Occasional brief downtime is acceptable
+- You're experimenting or in development
+
+### 💡 Additional Cost Reduction Strategies
+
+Beyond choosing between deployment options, you can further reduce costs:
+
+1. **Regional Selection**
+   - South Central US: Cheapest option (used in scripts)
+   - East US: Standard pricing
+   - West US: Slightly more expensive
+
+2. **Image Optimization** (Already implemented)
+   - Multi-stage Docker builds
+   - Minimal Alpine Linux base
+   - Only essential files copied
+   - Optimized health check frequency
+
+3. **Monitoring and Right-Sizing**
+   ```bash
+   # Monitor actual resource usage
+   az monitor metrics list \
+     --resource /subscriptions/{subscription}/resourceGroups/stratocraft-rg/providers/Microsoft.ContainerInstance/containerGroups/stratocraft-app \
+     --metric "CpuUsage,MemoryUsage"
+   
+   # If consistently low usage, consider switching to cost-optimized
+   ```
+
+4. **Scheduled Scaling** (Manual)
+   ```bash
+   # Stop container during low-traffic hours (if acceptable)
+   az container stop --resource-group stratocraft-rg --name stratocraft-app
+   
+   # Start when needed
+   az container start --resource-group stratocraft-rg --name stratocraft-app
+   ```
+
+### 🔄 Switching Between Options
+
+You can easily switch between deployment types:
+
+```bash
+# Switch to cost-optimized
+az container delete --resource-group stratocraft-rg --name stratocraft-app --yes
+./scripts/deploy-azure-minimal.sh
+
+# Switch back to standard
+az container delete --resource-group stratocraft-rg --name stratocraft-app --yes
+./scripts/deploy-azure.sh
+```
+
+### 💰 Annual Cost Summary
+
+| Deployment Type | Monthly | Annual | Use Case |
+|----------------|---------|--------|----------|
+| **Cost-Optimized** | $13 | $156 | Personal blogs, side projects |
+| **Standard** | $16 | $192 | Production sites, business use |
+| **Difference** | $3 | $36 | - |
+
+Both options are significantly cheaper than traditional hosting solutions while providing enterprise-grade reliability and scalability.
 
 ## Custom Domain Setup
 

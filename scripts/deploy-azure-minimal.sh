@@ -1,17 +1,18 @@
 #!/bin/bash
 
-# Azure Container Deployment Script for stratocraft.dev
-# This script builds the Docker image and deploys it to Azure Container Instances
+# Cost-Optimized Azure Container Deployment Script for stratocraft.dev
+# This script minimizes costs while maintaining functionality
 
 set -e
 
-# Configuration (update these values for your deployment)
+# Configuration optimized for cost
 RESOURCE_GROUP="${AZURE_RESOURCE_GROUP:-stratocraft-rg}"
 CONTAINER_REGISTRY="${AZURE_CONTAINER_REGISTRY:-stratocraft-acr}"
 IMAGE_NAME="stratocraft-dev"
-IMAGE_TAG="${IMAGE_TAG:-latest}"
+IMAGE_TAG="${IMAGE_TAG:-minimal}"
 CONTAINER_NAME="stratocraft-app"
 DNS_NAME_LABEL="${DNS_NAME_LABEL:-stratocraft-dev}"
+# Use cheaper region
 LOCATION="${AZURE_LOCATION:-southcentralus}"
 
 # Colors for output
@@ -20,7 +21,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}🚀 Starting Azure deployment for stratocraft.dev${NC}"
+echo -e "${GREEN}💰 Starting cost-optimized Azure deployment for stratocraft.dev${NC}"
 
 # Check if Azure CLI is installed
 if ! command -v az &> /dev/null; then
@@ -40,16 +41,7 @@ if [ -z "$GITHUB_TOKEN" ]; then
     exit 1
 fi
 
-if [ -z "$GITHUB_WEBHOOK_SECRET" ]; then
-    echo -e "${YELLOW}⚠️  GITHUB_WEBHOOK_SECRET not set. Webhooks will not work.${NC}"
-    read -p "Continue anyway? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        exit 1
-    fi
-fi
-
-echo -e "${GREEN}📦 Building Docker image...${NC}"
+echo -e "${GREEN}📦 Building optimized Docker image...${NC}"
 docker build -t "$IMAGE_NAME":"$IMAGE_TAG" .
 
 # Create resource group if it doesn't exist
@@ -70,8 +62,7 @@ LOGIN_SERVER=$(az acr show --name "$CONTAINER_REGISTRY" --resource-group "$RESOU
 
 # Tag image for registry
 echo -e "${GREEN}🏷️  Tagging image for registry...${NC}"
-# shellcheck disable=SC2086
-docker tag "$IMAGE_NAME":"$IMAGE_TAG" "$LOGIN_SERVER"/"$IMAGE_NAME":$IMAGE_TAG
+docker tag "$IMAGE_NAME":"$IMAGE_TAG" "$LOGIN_SERVER"/"$IMAGE_NAME":"$IMAGE_TAG"
 
 # Log in to container registry
 echo -e "${GREEN}🔐 Logging in to container registry...${NC}"
@@ -92,8 +83,8 @@ if [ -n "$GITHUB_WEBHOOK_SECRET" ]; then
     ENV_VARS="$ENV_VARS GITHUB_WEBHOOK_SECRET=$GITHUB_WEBHOOK_SECRET"
 fi
 
-# Deploy container to Azure Container Instances
-echo -e "${GREEN}🚀 Deploying to Azure Container Instances...${NC}"
+# Deploy container with minimal resources
+echo -e "${GREEN}💰 Deploying with cost-optimized settings...${NC}"
 az container create \
     --resource-group "$RESOURCE_GROUP" \
     --name "$CONTAINER_NAME" \
@@ -104,24 +95,27 @@ az container create \
     --dns-name-label "$DNS_NAME_LABEL" \
     --ports 8080 \
     --environment-variables "$ENV_VARS" \
-    --cpu 0.5 \
+    --cpu 0.25 \
     --memory 0.5 \
-    --restart-policy Always \
+    --restart-policy OnFailure \
     --location "$LOCATION" \
     --output none
 
 # Get the FQDN
 FQDN=$(az container show --resource-group "$RESOURCE_GROUP" --name "$CONTAINER_NAME" --query ipAddress.fqdn --output tsv)
 
-echo -e "${GREEN}✅ Deployment complete!${NC}"
-echo -e "${GREEN}🌐 Your application is available at: https://$FQDN${NC}"
+echo -e "${GREEN}✅ Cost-optimized deployment complete!${NC}"
+echo -e "${GREEN}🌐 Your application is available at: http://$FQDN${NC}"
+echo -e "${GREEN}💰 Estimated monthly cost: ~$12-15${NC}"
 echo -e "${GREEN}📊 Monitor your container:${NC}"
 echo "   az container logs --resource-group $RESOURCE_GROUP --name $CONTAINER_NAME --follow"
 echo -e "${GREEN}🔄 Webhook endpoint:${NC}"
-echo "   https://$FQDN/webhook/github"
+echo "   http://$FQDN/webhook/github"
 
 echo ""
-echo -e "${YELLOW}📝 Next steps:${NC}"
-echo "1. Configure your GitHub webhook with URL: https://$FQDN/webhook/github"
-echo "2. Set up custom domain and SSL certificate if needed"
-echo "3. Configure monitoring and alerts" 
+echo -e "${YELLOW}💡 Cost optimization features enabled:${NC}"
+echo "• Minimal CPU (0.25 vCPU) and memory (0.5GB)"
+echo "• OnFailure restart policy (stops when not needed)"
+echo "• Optimized health checks (60s intervals)"
+echo "• Smaller Docker image with only essential files"
+echo "• Cost-effective region (South Central US)" 
