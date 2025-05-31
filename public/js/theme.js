@@ -46,6 +46,14 @@ console.log('Theme script loaded');
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM content loaded');
     
+    // Initialize syntax highlighting
+    if (typeof hljs !== 'undefined') {
+        hljs.highlightAll();
+        console.log('Syntax highlighting initialized');
+    } else {
+        console.log('Highlight.js not found');
+    }
+    
     // Add event listeners for both desktop and mobile toggle buttons
     const themeToggle = document.getElementById('theme-toggle');
     const themeToggleMobile = document.getElementById('theme-toggle-mobile');

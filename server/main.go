@@ -28,7 +28,7 @@ func main() {
 	e.GET("/posts", app.PostsList)
 	e.GET("/search", app.Search)
 	e.GET("/posts/:slug", app.PostDetail)
-	//e.GET("/about", app.About)
+	e.GET("/about", app.About)
 	//e.GET("/contact", app.Contact)
 	//e.GET("/services", app.Services)
 

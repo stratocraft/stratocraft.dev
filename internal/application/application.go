@@ -1,6 +1,7 @@
 package application
 
 import (
+	"github.com/labstack/echo/v4"
 	"github.com/stratocraft/stratocraft.dev/internal/contentmanager"
 	"github.com/stratocraft/stratocraft.dev/internal/site"
 	"log"
@@ -29,4 +30,9 @@ func New() *Application {
 	return &Application{
 		ContentManager: cm,
 	}
+}
+
+// About renders the About page
+func (app *Application) About(c echo.Context) error {
+	return AboutHandler(c)
 }

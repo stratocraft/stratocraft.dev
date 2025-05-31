@@ -7,7 +7,7 @@ import (
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/renderer/html"
 	"log"
-	"regexp"
+	// "regexp"
 	"strings"
 	"time"
 )
@@ -87,9 +87,9 @@ func markdownToHtml(markdown []byte) (string, error) {
 	// Replace target="_blank" for links
 	output = strings.ReplaceAll(output, `<a href=`, `<a target="_blank" href=`)
 
-	// Fix code classes for highlight.js
-	pattern := regexp.MustCompile(`<pre><code class="language-(\w+)">`)
-	output = pattern.ReplaceAllString(output, `<pre><code class="$1"`)
+	// Note: Keep the original language-* classes for highlight.js
+	// Highlight.js expects: <code class="language-go">
+	// No modification needed since Goldmark already outputs this format
 
 	return output, nil
 }
