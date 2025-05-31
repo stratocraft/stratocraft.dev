@@ -27,6 +27,19 @@ function toggleTheme() {
     }, 100);
 }
 
+// Mobile menu toggle functionality
+function toggleMobileMenu() {
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuIcon = document.getElementById('menu-icon');
+    const closeIcon = document.getElementById('close-icon');
+    
+    if (mobileMenu && menuIcon && closeIcon) {
+        mobileMenu.classList.toggle('hidden');
+        menuIcon.classList.toggle('hidden');
+        closeIcon.classList.toggle('hidden');
+    }
+}
+
 console.log('Theme script loaded');
 
 // Wait for DOM to be fully loaded
@@ -52,6 +65,26 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Added click listener to mobile theme toggle');
     } else {
         console.log('Mobile theme toggle element not found');
+    }
+
+    // Add event listener for mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    
+    if (mobileMenuButton) {
+        mobileMenuButton.addEventListener('click', toggleMobileMenu);
+        console.log('Added click listener to mobile menu button');
+    } else {
+        console.log('Mobile menu button not found');
+    }
+
+    // Close mobile menu when clicking on menu links
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenu) {
+        mobileMenu.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A') {
+                toggleMobileMenu();
+            }
+        });
     }
 
     // Smooth scrolling for anchor links
