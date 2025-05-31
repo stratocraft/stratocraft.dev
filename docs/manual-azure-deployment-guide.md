@@ -224,13 +224,13 @@ I provide two deployment options to balance performance and cost based on your n
 
 ### 📊 Cost Comparison
 
-| Feature | Standard | Cost-Optimized | Savings |
-|---------|----------|----------------|---------|
-| **Monthly Cost** | ~$16 | ~$13 | ~$3/month |
-| **CPU Performance** | Better | Good | - |
-| **Memory** | Same | Same | - |
-| **Uptime** | 100% | 95-99%* | Better reliability |
-| **Best For** | Production sites | Personal blogs | - |
+| Feature             | Standard         | Cost-Optimized | Savings            |
+|---------------------|------------------|----------------|--------------------|
+| **Monthly Cost**    | ~$16             | ~$13           | ~$3/month          |
+| **CPU Performance** | Better           | Good           | -                  |
+| **Memory**          | Same             | Same           | -                  |
+| **Uptime**          | 100%             | 95-99%*        | Better reliability |
+| **Best For**        | Production sites | Personal blogs | -                  |
 
 *OnFailure restart policy may cause brief downtime during failures vs. immediate restart
 
@@ -298,11 +298,11 @@ az container delete --resource-group stratocraft-rg --name stratocraft-app --yes
 
 ### 💰 Annual Cost Summary
 
-| Deployment Type | Monthly | Annual | Use Case |
-|----------------|---------|--------|----------|
-| **Cost-Optimized** | $13 | $156 | Personal blogs, side projects |
-| **Standard** | $16 | $192 | Production sites, business use |
-| **Difference** | $3 | $36 | - |
+| Deployment Type    | Monthly | Annual | Use Case                       |
+|--------------------|---------|--------|--------------------------------|
+| **Cost-Optimized** | $13     | $156   | Personal blogs, side projects  |
+| **Standard**       | $16     | $192   | Production sites, business use |
+| **Difference**     | $3      | $36    | -                              |
 
 Both options are significantly cheaper than traditional hosting solutions while providing enterprise-grade reliability and scalability.
 
