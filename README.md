@@ -2,6 +2,8 @@
 
 A modern, high-performance blog built with Go, Templ templates, and Tailwind CSS. Features real-time search, GitHub-based content management, and automatic post updates via webhooks.
 
+You can give the live site a spin at <a href="https://stratocraft.dev" target="_blank">stratocraft.dev</a>
+
 ## 🚀 Features
 
 - **Modern Go Stack**: Go 1.24 + Echo v4 + Templ templates + Tailwind CSS v4
@@ -253,7 +255,9 @@ Edit `internal/site/site.go` to configure:
    ---
    ```
 3. **Write your content** in Markdown
-4. **Commit and push** - the site will automatically update via webhook
+4. **Commit and push** - the site will automatically update via webhook  
+
+💡 Need an example of the posts? Check out the posts repo for the site at [github.com/stratocraft/posts](https://github.com/stratocraft/posts).
 
 ### Supported Frontmatter Fields
 
