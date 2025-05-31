@@ -1,5 +1,18 @@
-# Build stage
-FROM golang:1.21-alpine AS builder
+# ===== Build Stage =====
+FROM node:18-alpine AS css-builder
+
+# Install Tailwind CSS
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copy CSS source and build CSS
+COPY public/css/style.css ./public/css/
+COPY internal/ ./internal/
+RUN npx tailwindcss -i ./public/css/style.css -o ./public/css/site.css --minify
+
+# ===== Go Build Stage =====
+FROM golang:1.24-alpine AS go-builder
 
 # Install templ CLI
 RUN go install github.com/a-h/templ/cmd/templ@latest
@@ -7,10 +20,8 @@ RUN go install github.com/a-h/templ/cmd/templ@latest
 # Set working directory
 WORKDIR /app
 
-# Copy go mod files
+# Copy go mod files first for better caching
 COPY go.mod go.sum ./
-
-# Download dependencies
 RUN go mod download
 
 # Copy source code
@@ -19,40 +30,49 @@ COPY . .
 # Generate templ files
 RUN templ generate
 
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+# Build the application with optimizations
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    -ldflags='-w -s -extldflags "-static"' \
+    -a -installsuffix cgo \
+    -o stratocraft-server ./server
 
-# Final stage
-FROM alpine:latest
+# ===== Final Stage =====
+FROM alpine:3.19
 
-# Install ca-certificates for HTTPS
-RUN apk --no-cache add ca-certificates tzdata
+# Install ca-certificates for HTTPS and curl for health checks
+RUN apk --no-cache add ca-certificates tzdata curl && \
+    update-ca-certificates
 
-# Create non-root user
+# Create non-root user for security
 RUN addgroup -g 1001 -S appgroup && \
     adduser -u 1001 -S appuser -G appgroup
 
-WORKDIR /root/
+# Create app directory
+WORKDIR /app
 
 # Copy the binary from builder stage
-COPY --from=builder /app/main .
+COPY --from=go-builder /app/stratocraft-server .
 
-# Copy static files
-COPY --from=builder /app/static ./static
-COPY --from=builder /app/content ./content
+# Copy static assets with proper structure
+COPY --from=css-builder /app/public/css/site.css ./public/css/
+COPY --from=go-builder /app/public/ ./public/
 
-# Change ownership to non-root user
-RUN chown -R appuser:appgroup /root/
+# Set proper permissions
+RUN chown -R appuser:appgroup /app
 
 # Switch to non-root user
 USER appuser
 
-# Expose port
+# Expose port 8080
 EXPOSE 8080
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/ || exit 1
+# Add health check for Azure Container Instances
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/ || exit 1
+
+# Environment variables for production
+ENV GIN_MODE=release
+ENV PORT=8080
 
 # Run the application
-CMD ["./main"]
+CMD ["./stratocraft-server"]

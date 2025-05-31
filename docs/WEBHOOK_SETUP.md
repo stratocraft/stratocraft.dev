@@ -1,6 +1,6 @@
 # GitHub Webhook Setup Guide
 
-This guide explains how to set up GitHub webhooks so your stratocraft.dev site automatically refreshes content when new posts are added to your posts repository.
+This guide explains how to set up GitHub webhooks for stratocraft.dev site automatically refreshes content when new posts are added to your posts repository.
 
 ## Overview
 
@@ -30,7 +30,8 @@ Set the webhook secret as an environment variable on your server:
 export GITHUB_WEBHOOK_SECRET=your_generated_secret_here
 ```
 
-For production deployments, add this to your deployment configuration or `.env` file.
+For production deployments, add this to your deployment configuration or `.env` file. Reminder that `.env` files should
+not be checked into source control and should be added to your `.gitignore`.
 
 ## Step 3: Configure GitHub Webhook
 
@@ -44,7 +45,12 @@ For production deployments, add this to your deployment configuration or `.env` 
    - **Events**: Select "Just the push event"
    - **Active**: ✅ Checked
 
-5. Click **Add webhook**
+5. Click **Add webhook**  
+
+💡 If your site is not deployed to production yet with a DNS name that resolves to what you provided for the *Payload URL*
+you will get a message `Last delivery was not successful. Failed to connect to host.`. This is expected behavior until
+your deployment is completed and the URL resolves. 
+
 
 ## Step 4: Test the Webhook
 
