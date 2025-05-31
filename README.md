@@ -96,13 +96,13 @@ stratocraft.dev/
 - Go 1.24+
 - Docker (for deployment)
 - Node.js (for Tailwind CSS)
-- GitHub Personal Access Token
+- GitHub Personal Access Token ([setup guide](docs/github-token-setup-guide.md))
 
 ### Local Development
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/stratocraft.dev.git
+   git clone https://github.com/stratocraft/stratocraft.dev.git
    cd stratocraft.dev
    ```
 
@@ -116,7 +116,7 @@ stratocraft.dev/
 
 3. **Set environment variables**
    ```bash
-   export GITHUB_TOKEN=your_github_token_here
+   export GITHUB_TOKEN=your_github_token_here  # See: docs/github-token-setup-guide.md
    export GITHUB_WEBHOOK_SECRET=$(openssl rand -hex 32)  # Optional
    ```
 
@@ -223,7 +223,7 @@ Enable automatic content updates when you add new blog posts:
 ### Environment Variables
 
 **Required:**
-- `GITHUB_TOKEN`: Personal access token for GitHub API access
+- `GITHUB_TOKEN`: Personal access token for GitHub API access ([setup guide](docs/github-token-setup-guide.md))
 
 **Optional:**
 - `GITHUB_WEBHOOK_SECRET`: Secret for webhook signature verification
@@ -305,7 +305,7 @@ go test ./...
    - Check file paths in templates
 
 3. **GitHub API rate limiting**
-   - Set `GITHUB_TOKEN` environment variable
+   - Set `GITHUB_TOKEN` environment variable ([setup guide](docs/github-token-setup-guide.md))
    - Verify token has repository read permissions
 
 4. **Webhook not working**
@@ -315,6 +315,7 @@ go test ./...
 
 ## 📚 Documentation
 
+- **[GitHub Token Setup Guide](docs/github-token-setup-guide.md)**: Step-by-step guide to create and configure GitHub Personal Access Tokens
 - **[Azure Deployment Guide](docs/manual-azure-deployment-guide.md)**: Complete Azure deployment instructions with cost optimization
 - **[Webhook Setup Guide](docs/webhook-setup-guide.md)**: GitHub webhook configuration for automatic updates
 
@@ -334,7 +335,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Documentation**: Check the guides in the `docs/` folder
 - **Issues**: Open a GitHub issue for bugs or feature requests
-- **Contact**: [Open an issue](https://github.com/yourusername/stratocraft.dev/issues) for support
+- **Contact**: [Open an issue](https://github.com/stratocraft/stratocraft.dev/issues) for support
 
 ---
 

@@ -1,6 +1,6 @@
-# 🚀 Azure Deployment Guide
+# 🚀 Manual Azure Deployment Guide with Bash scripts
 
-This guide explains how to deploy [stratocraft.dev](https://stratocraft.dev) to Azure Container Instances using the optimized Docker container.
+This guide explains how to deploy [stratocraft.dev](https://stratocraft.dev) to Azure Container Instances using the optimized Docker container and deployment script(s).
 
 ## Overview
 
@@ -31,8 +31,13 @@ export AZURE_CONTAINER_REGISTRY=stratocraft-acr
 export DNS_NAME_LABEL=stratocraft-dev
 export AZURE_LOCATION=southcentralus
 
-# Deploy to Azure
+# Deploy to Azure using one of the two provided scripts:
+
+# [Standard] Slightly more expensive than the cost optimized version.
 ./scripts/deploy-azure.sh
+
+# [Cost Optimized] About $3 per month or $36 per year cheaper to run.
+./scripts/deploy-azure-minimal.sh
 ```
 
 ## Environment Variables
