@@ -171,7 +171,7 @@ cd server && go run main.go
 
 ## 🌐 Deployment to Azure
 
-We provide two deployment options with different cost profiles:
+I provide two deployment options with different cost profiles:
 
 ### Standard Deployment (~$16/month)
 ```bash
